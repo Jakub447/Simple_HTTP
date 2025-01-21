@@ -1,0 +1,314 @@
+Milestone 2: RFC 2616 Basic Compliance
+
+    Goal: Enhance server functionality to comply with essential HTTP/1.1 specifications.
+
+Requirements:
+
+    Support for Additional HTTP Methods:
+        Implement GET, HEAD, POST, and OPTIONS methods.
+
+    Enhanced Response Handling:
+        Support common HTTP response status codes (200 OK, 400 Bad Request, 404 Not Found, 500 Internal Server Error).
+
+Milestone 4: Security Enhancements
+
+    Goal: Strengthen the server’s security by addressing common vulnerabilities and implementing HTTPS.
+
+Requirements:
+
+    HTTPS Support:
+        Integrate TLS/SSL to support HTTPS connections.
+        Use OpenSSL or a similar library for TLS encryption.
+
+    Input Validation and Sanitization:
+        Prevent basic security issues like path traversal and header injection attacks by validating and sanitizing user input (e.g., requested file paths).
+
+    Rate Limiting:
+        Implement basic rate limiting to prevent abuse and denial-of-service attacks.
+
+    Cross-Site Scripting (XSS) Protection:
+        Ensure correct handling of input and output to prevent XSS attacks (e.g., escape special characters in HTML responses).
+
+    Security Headers:
+        Add security headers to responses (e.g., X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Content-Security-Policy).
+
+Milestone 5: Performance Improvements
+
+    Goal: Increase the performance and scalability of the server to handle more connections and requests efficiently.
+
+Requirements:
+
+    Multithreading/Concurrency:
+        Use threading (e.g., via std::thread or thread pools) to handle multiple connections concurrently.
+        Ensure thread-safety in critical sections of the code.
+
+    Event-Driven Architecture:
+        Implement an event-driven (non-blocking I/O) model using select, poll, or epoll (for Linux) to handle multiple connections in an efficient way.
+
+    Efficient File I/O:
+        Use memory-mapped files or efficient file transfer mechanisms (e.g., sendfile() on Linux) to serve large static files.
+
+    Connection Timeouts:
+        Implement proper timeouts for idle connections (e.g., using the SO_RCVTIMEO and SO_SNDTIMEO socket options).
+
+Milestone 6: Advanced HTTP Features
+
+    Goal: Fully support HTTP/1.1 advanced features and further enhance RFC 2616 compliance.
+
+Requirements:
+
+    Chunked Transfer Encoding:
+        Support chunked transfer encoding for responses without known content length.
+
+    Pipelining:
+        Support HTTP/1.1 request pipelining to handle multiple requests from the same client without waiting for previous responses to complete.
+
+    Compression:
+        Implement Gzip or Deflate compression for responses to reduce bandwidth usage (honor Accept-Encoding header).
+
+    Connection Pooling:
+        Manage a pool of TCP connections efficiently to reduce the overhead of establishing new connections.
+
+Milestone 7: Advanced Security
+
+    Goal: Implement more advanced security features to further harden the server against attacks.
+
+Requirements:
+
+    HTTP/2 or Later (Optional):
+        Support newer HTTP versions (e.g., HTTP/2) for performance and security improvements, if necessary for the project.
+
+    Authentication:
+        Implement basic HTTP authentication (e.g., using Authorization header for Basic authentication).
+        Optionally integrate more advanced authentication mechanisms (OAuth, JWT, etc.).
+
+    Session Management:
+        Implement secure session management for handling stateful sessions (using cookies, session tokens, etc.).
+
+    Firewall and IP Blacklisting:
+        Add support for blacklisting/whitelisting IP addresses and implementing basic firewall functionality to reject malicious requests.
+
+Milestone 8: Load Balancing and Scalability
+
+    Goal: Enable the server to handle large-scale traffic and distribute load across multiple instances.
+
+Requirements:
+
+    Load Balancing Support:
+        Design the server to work efficiently behind load balancers (ensure compatibility with common load balancers like NGINX or HAProxy).
+
+    Horizontal Scaling:
+        Implement features to support horizontal scaling (e.g., sharing session data or distributed file storage across multiple server instances).
+
+    Graceful Upgrades:
+        Implement zero-downtime upgrades for deploying new versions of the server without interrupting ongoing connections.
+
+Milestone 9: OS-Level Integration and Thread Management
+
+    Goal: Improve OS interaction by adding better resource management, thread handling, and support for running as a system service.
+
+Requirements:
+
+    Process Management:
+        Implement a daemon mode where the server runs as a background process (use fork for UNIX-like systems).
+        Add support to gracefully restart or reload the server (without losing connections).
+
+    Service Startup:
+        Systemd/Init scripts for Linux-based systems: Provide configuration to start the server on boot as a service using systemd, init.d, or rc.d.
+        Windows Service (optional): Add support for running as a Windows service if targeting Windows environments.
+        Startup Configuration File: Enable the server to load settings from a configuration file (port, max threads, logging level, etc.).
+
+    Thread Management:
+        Configurable Thread Pool: Allow the user to define the maximum number of worker threads in a thread pool.
+        Implement proper thread pooling to reuse threads across multiple requests, rather than creating/destroying threads on each request.
+        Load-based Thread Scaling: Adjust the number of worker threads dynamically based on server load.
+
+    Signal Handling:
+        Implement signal handling (e.g., SIGTERM, SIGHUP) to support graceful shutdowns and reload configurations without dropping connections.
+        Handle shutdown and restart signals properly (clean up resources, save state if necessary).
+
+    CPU and Memory Usage Monitoring:
+        Periodically log memory and CPU usage to monitor performance and detect potential memory leaks or CPU saturation.
+
+Milestone 10: Advanced Logging and Monitoring
+
+    Goal: Build a comprehensive logging and monitoring system that integrates with the operating system and offers more detailed logging for debugging and security purposes.
+
+Requirements:
+
+    Logging Levels:
+        Implement logging levels (DEBUG, INFO, WARN, ERROR, FATAL) to allow different levels of verbosity.
+        Make the logging level configurable through command-line options or configuration files.
+
+    OS-Level Logging Integration:
+        Syslog Support: For UNIX-like systems, integrate with syslog for centralized logging.
+        Windows Event Log: If targeting Windows, add optional support for logging to the Windows Event Log.
+
+    Log Rotation:
+        Implement log rotation to prevent logs from growing too large. Either integrate with external tools like logrotate or implement custom rotation based on size/time.
+
+    Request and Error Logging:
+        Log every incoming HTTP request with timestamp, request method, path, response status, and response time.
+        Log errors in a separate log file or stream to help with troubleshooting (e.g., failed connections, failed file reads).
+
+    Monitoring Endpoints (Optional):
+        Provide endpoints to monitor server health (/health) and metrics (e.g., /metrics for system statistics like CPU usage, memory consumption, open file descriptors, etc.).
+
+Milestone 11: Command-Line Interface and Configuration
+
+    Goal: Provide a flexible command-line interface (CLI) to manage the server and allow configuration changes at runtime.
+
+Requirements:
+
+    Command-Line Interface (CLI):
+        Create a command-line interface that allows users to start, stop, and configure the server.
+        Basic Options:
+            --port: Specify the port to run the server on.
+            --config: Load settings from a configuration file.
+            --daemon: Run the server in the background as a daemon.
+            --log-level: Set the logging verbosity level (DEBUG, INFO, ERROR).
+            --threads: Specify the number of worker threads.
+            --help: Display available commands and options.
+
+    Interactive CLI (Optional):
+        If the user needs it, implement an interactive shell that allows runtime configuration of the server (e.g., adjust thread count, toggle logging levels, monitor server status).
+
+    Dynamic Configuration Reload:
+        Allow for runtime configuration changes via signals (e.g., SIGHUP for reloading configuration files).
+        For example, users can change log levels or thread counts without restarting the server.
+
+    Configurable Resource Limits:
+        Provide configuration options for resource limits (e.g., maximum connections, file descriptors) through both CLI and configuration files.
+
+Milestone 12: Lightweight Mode for Limited Devices
+
+    Goal: Make the server adaptable to constrained environments (e.g., IoT devices, embedded systems) by optimizing for minimal resource usage.
+
+Requirements:
+
+    Low Resource Usage Mode:
+        Implement a lightweight mode that minimizes CPU, memory, and file descriptor usage.
+        Reduce logging verbosity in this mode (WARN and ERROR only).
+        Reduce or eliminate multithreading (single-threaded mode) to minimize memory footprint on constrained devices.
+
+    Static Configuration for Low Power Devices:
+        Allow configuration files to statically define server options to reduce runtime decisions (e.g., fixed thread pool size, logging, and response caching).
+        Disable features like request pipelining and chunked transfer encoding if not necessary in limited environments.
+
+    Run as Background Process:
+        Allow running as a background daemon or service on embedded systems without user intervention.
+        Implement watchdog or keep-alive mechanisms to automatically restart the server in case of crashes.
+
+    Cross-Compilation for Embedded Systems:
+        Ensure the server can be cross-compiled for platforms with limited hardware (e.g., ARM-based devices like Raspberry Pi).
+
+Milestone 13: Full-Featured Mode for Server Machines
+
+    Goal: Add features and optimizations for running as a fully-featured application on server machines with sufficient resources.
+
+Requirements:
+
+    High-Performance Features:
+        Enable multithreading with an optimized thread pool to handle a large number of concurrent connections.
+        Support high-performance networking options (e.g., epoll on Linux for scalable I/O handling).
+        Optimize memory management and ensure efficient handling of large requests and responses (e.g., serving large files from disk without excessive memory usage).
+
+    Concurrency Limits and Load Management:
+        Allow users to set maximum connection limits and gracefully handle overload situations (e.g., queue incoming connections, drop connections when load exceeds limits).
+
+    Load Balancer Compatibility:
+        Ensure compatibility with common load balancers (e.g., NGINX, HAProxy) by handling forwarded headers (X-Forwarded-For, X-Real-IP) and using proper timeouts for backend connections.
+
+    Graceful Upgrade and Downtime Management:
+        Support for zero-downtime deployments, where the server can be upgraded or restarted without interrupting active connections (e.g., using techniques like socket sharing).
+
+Milestone 14: Final Integration and Polishing
+
+    Goal: Final touches to make the server robust, maintainable, and easy to deploy across various environments.
+
+Requirements:
+
+    Cross-Platform Support:
+        Ensure the server can be compiled and run on major platforms, including Linux, macOS, and Windows.
+        Provide cross-compilation instructions for embedded devices and servers.
+
+    Packaging and Installation:
+        Provide installation packages or instructions for various environments (e.g., deb, rpm for Linux, Windows installers).
+        Ensure dependencies are clearly documented and managed (e.g., using CMake, pkg-config for cross-platform build systems).
+
+    Documentation and Help System:
+        Provide comprehensive documentation for users and developers, including API references and configuration file samples.
+        Include a --help command to display CLI options and their usage.
+
+    Testing and CI Integration:
+        Implement automated testing (unit tests, integration tests) to ensure robustness and avoid regressions.
+        Optionally, integrate Continuous Integration (CI) pipelines for testing across various platforms.
+
+    Performance Tuning Guidelines:
+        Provide documentation on how to tune the server for different environments (low-power embedded devices vs. high-performance servers).
+        Recommend optimal settings based on hardware and network conditions.
+
+Milestone 15: Modularize Server into a Reusable Library (Optional)
+
+    Goal: Make the HTTP server a reusable C++ library so that other programs can embed the server functionality. This step provides a flexible way for developers to add HTTP server capabilities into their own applications.
+
+Requirements:
+
+    Library Design:
+        Refactor the HTTP server to be packaged as a reusable library (static or shared).
+        Separate Core Components:
+            Extract the core components (e.g., request parsing, response handling, connection management) into modular and reusable classes.
+            Ensure that these components are decoupled and can be used independently (e.g., request parser without the server).
+
+    API for Embedding:
+        Design a clean API to allow external applications to:
+            Start and stop the server.
+            Handle incoming requests programmatically.
+            Register custom request handlers (for custom routes).
+
+    Header-Only Library (Optional):
+        Optionally, provide a header-only version of the library to simplify usage for developers, enabling easy inclusion without additional compilation steps.
+
+    Dynamic Configuration and Extensibility:
+        Allow embedding programs to configure server settings (port, logging, thread pool size) via API calls.
+        Make it easy to extend functionality (e.g., adding custom authentication mechanisms, custom request processing logic).
+
+    Error Handling and Callbacks:
+        Provide callback mechanisms for error handling, logging, and monitoring, allowing the embedding program to manage these features.
+
+    Documentation:
+        Provide comprehensive API documentation so developers can easily integrate the HTTP server into their programs.
+        Offer usage examples for typical scenarios (e.g., running the server in the background, registering custom routes).
+
+Milestone 16: REST API Integration (Optional)
+
+    Goal: Extend the server to support easy integration with REST APIs, making it suitable for building API-driven services.
+
+Requirements:
+
+    RESTful Route Management:
+        Implement a routing mechanism to map HTTP methods (GET, POST, PUT, DELETE, etc.) to specific API endpoints.
+        Allow users to define dynamic routes with parameters (e.g., /api/v1/users/{id}).
+
+    JSON Parsing and Response:
+        Integrate a lightweight JSON parser (such as nlohmann/json or RapidJSON) to handle incoming JSON data.
+        Ensure that the server can easily parse JSON request bodies and generate JSON responses.
+
+    REST API Middleware:
+        Provide middleware hooks to handle common REST API tasks:
+            Authentication (e.g., API keys, JWT).
+            Request validation (validate JSON payloads or query parameters).
+            CORS (Cross-Origin Resource Sharing) headers to support web applications.
+
+    HTTP Status Code Mapping:
+        Automatically map responses to proper HTTP status codes (200 OK, 201 Created, 400 Bad Request, 404 Not Found, 500 Internal Server Error, etc.) based on REST API best practices.
+
+    Error Handling for REST APIs:
+        Implement a standardized error response format (e.g., JSON object with error and message fields) for REST API errors.
+        Provide structured error logging for API request failures.
+
+    REST API Documentation (Optional):
+        Add a mechanism to auto-generate REST API documentation (e.g., via Swagger or similar tools) based on registered routes and method signatures.
+
+    Support for Versioned APIs:
+        Enable support for versioning API routes (e.g., /api/v1/resource, /api/v2/resource).
