@@ -14,24 +14,24 @@ namespace HTTP_Server
 	{
 	public:
 		// Add a single header value
-		void addHeader(const std::string &key, const std::string &value);
+		void add_header(const std::string &key, const std::string &value);
 
 		// Get all values associated with a header key
-		std::vector<std::string> getHeader(const std::string &key) const;
+		std::vector<std::string> get_header(const std::string &key) const;
 
 		// Check if a header exists
-		bool hasHeader(const std::string &key) const;
+		bool has_header(const std::string &key) const;
 
 		// Remove a specific header key and all its associated values
-		void removeHeader(const std::string &key);
+		void remove_header(const std::string &key);
 
-		void parseHeaders(const std::string &headersString);
+		void parse_headers(const std::string &headersString);
 
-		void printAllHeaders() const;
+		void print_all_headers() const;
 
 		bool is_connection_closed() const;
 
-		std::string GetAllHeaders() const;
+		std::string Get_all_headers() const;
 
 		std::vector<std::pair<std::string, std::string>> get_all_header_pairs() const;
 

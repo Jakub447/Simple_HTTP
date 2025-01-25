@@ -27,7 +27,7 @@ namespace HTTP_Server
 		std::mutex mutex;
 
 		// Check if a header should be stored in the cache according to RFC 9111
-		bool shouldStoreHeader(const std::string &headerName);
+		bool should_store_header(const std::string &headerName);
 
 	public:
 		// Retrieve a cache entry based on key
@@ -40,13 +40,13 @@ namespace HTTP_Server
 		void update(const std::string &key, const std::string &body, const HTTPHeaders &headers, const std::string &Etag);
 
 		// Update an existing cache entry by appending to the body and headers
-		void updateAndAppend(const std::string &key, const std::string &additional_body, const HTTPHeaders &additional_headers, const std::string &Etag);
+		void update_and_append(const std::string &key, const std::string &additional_body, const HTTPHeaders &additional_headers, const std::string &Etag);
 
 		// Generate appropriate cache-related response headers
-		void generateCacheHeaders(HTTPHeaders &resp_headers, const CacheEntry &entry);
+		void generate_cache_headers(HTTPHeaders &resp_headers, const CacheEntry &entry);
 
 		// Handle cache-related request headers (e.g., If-None-Match, If-Modified-Since)
-		bool validateCacheEntry(const std::optional<CacheEntry>& entry, const HTTPHeaders &request_headers);
+		bool validate_cache_entry(const std::optional<CacheEntry>& entry, const HTTPHeaders &request_headers);
 	};
 }
 

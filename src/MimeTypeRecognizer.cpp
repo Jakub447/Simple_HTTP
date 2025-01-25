@@ -9,20 +9,20 @@ namespace HTTP_Server
 {
 	MimeTypeRecognizer::MimeTypeRecognizer()
 	{
-		initializeMimeTypes();
+		initialize_mime_types();
 	}
 
 	// Helper function to get the file extension from a file path
-	std::string MimeTypeRecognizer::getFileExtension(const std::string &filePath) const
+	std::string MimeTypeRecognizer::get_file_extension(const std::string &filePath) const
 	{
 		std::filesystem::path path(filePath);
 		return path.extension().string(); // Includes the dot (e.g., ".html")
 	}
 
 	// Method to get the MIME type information based on file path
-	MimeTypeInfo MimeTypeRecognizer::getMimeTypeInfo(const std::string &filePath) const
+	MimeTypeInfo MimeTypeRecognizer::get_mime_type_Info(const std::string &filePath) const
 	{
-		std::string extension = getFileExtension(filePath);
+		std::string extension = get_file_extension(filePath);
 		if (mimeTypeMap.find(extension) != mimeTypeMap.end())
 		{
 			return mimeTypeMap.at(extension);
@@ -34,14 +34,14 @@ namespace HTTP_Server
 	}
 
 	// Method to check if the file type is binary
-	bool MimeTypeRecognizer::isBinaryFile(const std::string &filePath) const
+	bool MimeTypeRecognizer::is_binary_file(const std::string &filePath) const
 	{
-		return getMimeTypeInfo(filePath).is_binary;
+		return get_mime_type_Info(filePath).is_binary;
 	}
 
-	std::string MimeTypeRecognizer::getMimeTypeString(const std::string &filePath) const
+	std::string MimeTypeRecognizer::get_mime_type_string(const std::string &filePath) const
 	{
-		std::string extension = getFileExtension(filePath);
+		std::string extension = get_file_extension(filePath);
 		if (mimeTypeMap.find(extension) != mimeTypeMap.end())
 		{
 			return mimeTypeMap.at(extension).mimeType;
@@ -53,13 +53,13 @@ namespace HTTP_Server
 	}
 
 	// Method to allow adding new MIME types dynamically
-	void MimeTypeRecognizer::addMimeType(const std::string &extension, const std::string &mimeType, bool is_binary)
+	void MimeTypeRecognizer::add_mime_type(const std::string &extension, const std::string &mimeType, bool is_binary)
 	{
 		mimeTypeMap[extension] = {mimeType, is_binary};
 	}
 
 	// Initialize the map with common MIME types
-	void MimeTypeRecognizer::initializeMimeTypes()
+	void MimeTypeRecognizer::initialize_mime_types()
 	{
 		mimeTypeMap[".html"] = {"text/html", false};
 		mimeTypeMap[".htm"] = {"text/html", false};

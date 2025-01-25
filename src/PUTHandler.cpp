@@ -14,7 +14,7 @@ namespace HTTP_Server
 {
 
 	// Function to convert FileOpenMode to std::ios flags
-	static std::ios_base::openmode toOpenmode(bool is_binary)
+	static std::ios_base::openmode to_open_mode(bool is_binary)
 	{
 		if (is_binary)
 		{
@@ -77,7 +77,7 @@ static int write_string_to_file(const std::string &content, const std::string &f
 		resp_info.resp_code = 200;
 		resp_info.status_message = "OK";
 
-		std::string filename = concatenatePath(root_dir, req_info.URI);
+		std::string filename = concatenate_path(root_dir, req_info.URI);
 		std::cout << "filename after fun:" << filename << std::endl;
 
 		std::cout << "File: " << filename << std::endl;
@@ -86,9 +86,9 @@ static int write_string_to_file(const std::string &content, const std::string &f
 		write_string_to_file(req_info.body, filename, false);
 
 		//MimeTypeRecognizer recognizer;
-		//MimeTypeInfo file_mime_type_info = recognizer.getMimeTypeInfo(filename);
-		//resp_headers.addHeader("Content-Type", file_mime_type_info.mimeType);
-		//resp_info.resp_final_body = readFileToString(filename, file_mime_type_info.is_binary);
+		//MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);
+		//resp_headers.add_header("Content-Type", file_mime_type_info.mimeType);
+		//resp_info.resp_final_body = read_file_to_string(filename, file_mime_type_info.is_binary);
 
 		//if(resp_info.resp_final_body == "")
 		//{
@@ -98,7 +98,7 @@ static int write_string_to_file(const std::string &content, const std::string &f
 		//	std::cout << "NOT FOUND " << std::endl;
 		//}
 
-		//resp_headers.addHeader("Content-Length", std::to_string(resp_info.resp_final_body.length()));
+		//resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
 
 		return 0;
 	}

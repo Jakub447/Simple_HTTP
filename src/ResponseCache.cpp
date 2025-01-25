@@ -4,7 +4,7 @@
 namespace HTTP_Server
 {
 	// Check if a header should be stored according to RFC 9111
-	bool ResponseCache::shouldStoreHeader(const std::string &headerName)
+	bool ResponseCache::should_store_header(const std::string &headerName)
 	{
 		// Define headers to store
 		static const std::vector<std::string> headersToStore = {
@@ -47,14 +47,14 @@ namespace HTTP_Server
 		// Store only selected headers
 		for (const auto &headerName : headers.get_all_header_pairs())
 		{
-			if (shouldStoreHeader(headerName.first))
+			if (should_store_header(headerName.first))
 			{
-				entry.selected_headers.addHeader(headerName.first, headerName.second);
+				entry.selected_headers.add_header(headerName.first, headerName.second);
 			}
 		}
 
 		// Extract and process the max-age value from Cache-Control if present
-		std::string cache_control = headers.getHeader("Cache-Control").empty() ? "" : headers.getHeader("Cache-Control").front();
+		std::string cache_control = headers.get_header("Cache-Control").empty() ? "" : headers.get_header("Cache-Control").front();
 		if (cache_control.find("max-age=") != std::string::npos)
 		{
 			size_t pos = cache_control.find("max-age=") + 8;
@@ -81,17 +81,17 @@ namespace HTTP_Server
 	}
 
 	// Generate cache-related headers for response
-	void ResponseCache::generateCacheHeaders(HTTPHeaders &resp_headers, const CacheEntry &entry)
+	void ResponseCache::generate_cache_headers(HTTPHeaders &resp_headers, const CacheEntry &entry)
 	{
-		resp_headers.addHeader("ETag", entry.cached_Etag);
-		resp_headers.addHeader("Cache-Control", "max-age=" + std::to_string(entry.max_age.count()));
+		resp_headers.add_header("ETag", entry.cached_Etag);
+		resp_headers.add_header("Cache-Control", "max-age=" + std::to_string(entry.max_age.count()));
 	}
 
 	// Handle cache-related request headers to decide whether to serve from cache or revalidate
-	bool ResponseCache::validateCacheEntry(const std::optional<CacheEntry>& entry, const HTTPHeaders &request_headers)
+	bool ResponseCache::validate_cache_entry(const std::optional<CacheEntry>& entry, const HTTPHeaders &request_headers)
 	{
 		// Check for ETag revalidation
-		auto if_none_match = request_headers.getHeader("If-None-Match");
+		auto if_none_match = request_headers.get_header("If-None-Match");
 		if (!if_none_match.empty() && if_none_match.front() == entry->cached_Etag)
 		{
 			return true; // Client's ETag matches; can serve from cache
@@ -104,7 +104,7 @@ namespace HTTP_Server
 	}
 
 	// Update an existing cache entry by appending to the body and headers
-	void ResponseCache::updateAndAppend(const std::string &key, const std::string &additional_body, const HTTPHeaders &additional_headers, const std::string &Etag)
+	void ResponseCache::update_and_append(const std::string &key, const std::string &additional_body, const HTTPHeaders &additional_headers, const std::string &Etag)
 	{
 		std::lock_guard<std::mutex> lock(mutex);
 		auto it = cache.find(key);
@@ -116,9 +116,9 @@ namespace HTTP_Server
 			// Add or update the selected headers based on the new headers
 			for (const auto &headerName : additional_headers.get_all_header_pairs())
 			{
-				if (shouldStoreHeader(headerName.first))
+				if (should_store_header(headerName.first))
 				{
-					it->second.selected_headers.addHeader(headerName.first, headerName.second);
+					it->second.selected_headers.add_header(headerName.first, headerName.second);
 				}
 			}
 

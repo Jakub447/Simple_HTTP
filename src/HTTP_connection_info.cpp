@@ -3,7 +3,7 @@
 namespace HTTP_Server
 {
 
-	std::string httpMethodToString(HTTPMethod method)
+	std::string http_method_to_string(HTTPMethod method)
 	{
 		switch (method)
 		{

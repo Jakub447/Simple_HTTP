@@ -38,7 +38,7 @@ namespace HTTP_Server
 	};
 
 	// Helper function to convert enum back to string (for debugging)
-	std::string httpMethodToString(HTTPMethod method);
+	std::string http_method_to_string(HTTPMethod method);
 }
 
 #endif // HTTP_connection_info_H

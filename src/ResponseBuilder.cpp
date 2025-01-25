@@ -62,7 +62,7 @@ namespace HTTP_Server
 			// std::cout << "defaultFiles: "<< defaultFiles << std::endl;
 			std::cout << "URI: " << URI << std::endl;
 
-			std::ifstream file(concatenatePath(root_dir, fileName));
+			std::ifstream file(concatenate_path(root_dir, fileName));
 			// std::cout << "file: "<< file << std::endl;
 			if (file.good())
 			{
@@ -164,32 +164,32 @@ namespace HTTP_Server
 			// Use headers from the cache entry
 			for (const auto &header : cache_entry->selected_headers.get_all_header_pairs())
 			{
-				resp_headers.addHeader(header.first, header.second);
+				resp_headers.add_header(header.first, header.second);
 			}
 
 			// Generate any dynamic headers that need to be fresh
-			//resp_headers.addHeader("Date", get_http_date());
-			//resp_headers.addHeader("Connection", "keep-alive");
+			//resp_headers.add_header("Date", get_http_date());
+			//resp_headers.add_header("Connection", "keep-alive");
 
 			// If serving from cache, add `Age` header
 			auto age = std::chrono::duration_cast<std::chrono::seconds>(
 						   std::chrono::steady_clock::now() - cache_entry->timestamp)
 						   .count();
-			resp_headers.addHeader("Age", std::to_string(age));
+			resp_headers.add_header("Age", std::to_string(age));
 		}
 		else
 		{
-			//resp_headers.addHeader("Server", "Own_http_server/0.1");
-			//resp_headers.addHeader("Content-Length", std::to_string(resp_info.resp_final_body.length()));
-			//resp_headers.addHeader("Date", get_http_date());
-			//resp_headers.addHeader("Connection", "keep-alive");
+			//resp_headers.add_header("Server", "Own_http_server/0.1");
+			//resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
+			//resp_headers.add_header("Date", get_http_date());
+			//resp_headers.add_header("Connection", "keep-alive");
 		}
 
-		resp_headers.addHeader("Server", "Own_http_server/0.1");
-		resp_headers.addHeader("Date", get_http_date());
-		resp_headers.addHeader("Connection", "keep-alive");
+		resp_headers.add_header("Server", "Own_http_server/0.1");
+		resp_headers.add_header("Date", get_http_date());
+		resp_headers.add_header("Connection", "keep-alive");
 
-		resp_info.resp_final_header += resp_headers.GetAllHeaders();
+		resp_info.resp_final_header += resp_headers.Get_all_headers();
 
 		resp_info.resp_final_header += "\r\n";
 

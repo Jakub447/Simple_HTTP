@@ -155,10 +155,10 @@ namespace HTTP_Server
 		RequestAnalyzer analyzer(http_req);
 		analyzer.parse_request();
 
-		//analyzer.get_headers().printAllHeaders();
+		//analyzer.get_headers().print_all_headers();
 
 		std::cout << "HTTP ver: " << analyzer.get_prot() << std::endl;
-		std::cout << "HTTP method: " << httpMethodToString(analyzer.get_method()) << std::endl;
+		std::cout << "HTTP method: " << http_method_to_string(analyzer.get_method()) << std::endl;
 		std::cout << "URI: " << analyzer.get_URI() << std::endl;
 
 		ResponseBuilder resp_builder(analyzer.get_info(), root_directory, analyzer.get_headers(), analyzer.get_body());
