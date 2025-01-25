@@ -6,7 +6,7 @@
 namespace HTTP_Server
 {
 
-	std::string concatenatePath(const std::string &rootDir, const std::string &URI);
+	std::string concatenate_path(const std::string &rootDir, const std::string &URI);
 
 }
 

@@ -20,18 +20,18 @@ namespace HTTP_Server
 	public:
 		MimeTypeRecognizer();
 
-		MimeTypeInfo getMimeTypeInfo(const std::string &filePath) const;
+		MimeTypeInfo get_mime_type_Info(const std::string &filePath) const;
 
-		void addMimeType(const std::string &extension, const std::string &mimeType, bool is_binary);
-		bool isBinaryFile(const std::string &filePath) const;
-		std::string getMimeTypeString(const std::string &filePath) const;
+		void add_mime_type(const std::string &extension, const std::string &mimeType, bool is_binary);
+		bool is_binary_file(const std::string &filePath) const;
+		std::string get_mime_type_string(const std::string &filePath) const;
 
 	private:
 		// Map from file extensions to MIME type information
 		std::unordered_map<std::string, MimeTypeInfo> mimeTypeMap;
 
-		std::string getFileExtension(const std::string &filePath) const;
-		void initializeMimeTypes();
+		std::string get_file_extension(const std::string &filePath) const;
+		void initialize_mime_types();
 	};
 
 }

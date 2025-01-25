@@ -14,7 +14,7 @@ namespace HTTP_Server
 {
 
 	// Function to convert FileOpenMode to std::ios flags
-	static std::ios_base::openmode toOpenmode(bool is_binary)
+	static std::ios_base::openmode to_open_mode(bool is_binary)
 	{
 		if (is_binary)
 		{
@@ -26,9 +26,9 @@ namespace HTTP_Server
 		}
 	}
 
-	static std::string readFileToString(const std::string &filename, bool is_binary)
+	static std::string read_file_to_string(const std::string &filename, bool is_binary)
 	{
-		std::ifstream file(filename, toOpenmode(is_binary));
+		std::ifstream file(filename, to_open_mode(is_binary));
 		if (!file)
 		{
 			// throw std::runtime_error("Unable to open file");
@@ -41,7 +41,7 @@ namespace HTTP_Server
 	}
 
 	// Function to generate an ETag based on the content of a file
-	static std::string generateETag(const std::string &filename)
+	static std::string generate_ETag(const std::string &filename)
 	{
 		std::ifstream file(filename, std::ios::binary);
 		if (!file)
@@ -67,9 +67,9 @@ namespace HTTP_Server
 	static bool should_cache_response(const HTTPHeaders &headers)
 	{
 		// Check for a `Cache-Control` header with `no-store` directive
-		if (headers.hasHeader("Cache-Control"))
+		if (headers.has_header("Cache-Control"))
 		{
-			std::string cache_control = headers.getHeader("Cache-Control").front();
+			std::string cache_control = headers.get_header("Cache-Control").front();
 			if (cache_control.find("no-store") != std::string::npos)
 			{
 				return false;
@@ -87,15 +87,15 @@ namespace HTTP_Server
 		resp_info.resp_code = 200;
 		resp_info.status_message = "OK";
 
-		std::string filename = concatenatePath(root_dir, req_info.URI);
+		std::string filename = concatenate_path(root_dir, req_info.URI);
 		std::cout << "filename after fun:" << filename << std::endl;
 
-		std::string currentETag = generateETag(filename);
+		std::string currentETag = generate_ETag(filename);
 		std::string cache_key = req_info.URI; // Use the URI as the cache key
 
 		// Check cache first
 		auto cached_entry = response_cache.get(cache_key);
-		if (cached_entry && response_cache.validateCacheEntry(cached_entry, req_headers))
+		if (cached_entry && response_cache.validate_cache_entry(cached_entry, req_headers))
 		{
 
 			std::cout << "Serving from cache!" << std::endl;
@@ -108,15 +108,15 @@ namespace HTTP_Server
 			return 0; // Successfully served from cache
 		}
 
-		resp_headers.addHeader("ETag", currentETag);
-		resp_headers.addHeader("Cache-Control", "max-age=60");
+		resp_headers.add_header("ETag", currentETag);
+		resp_headers.add_header("Cache-Control", "max-age=60");
 
 		std::cout << "File: " << filename << std::endl;
 
 		MimeTypeRecognizer recognizer;
-		MimeTypeInfo file_mime_type_info = recognizer.getMimeTypeInfo(filename);
-		resp_headers.addHeader("Content-Type", file_mime_type_info.mimeType);
-		resp_info.resp_final_body = readFileToString(filename, file_mime_type_info.is_binary);
+		MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);
+		resp_headers.add_header("Content-Type", file_mime_type_info.mimeType);
+		resp_info.resp_final_body = read_file_to_string(filename, file_mime_type_info.is_binary);
 
 		if(resp_info.resp_final_body == "")
 		{
@@ -126,7 +126,7 @@ namespace HTTP_Server
 			std::cout << "NOT FOUND " << std::endl;
 		}
 
-		resp_headers.addHeader("Content-Length", std::to_string(resp_info.resp_final_body.length()));
+		resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
 
 		// Decide if the response should be cached based on headers or other conditions
 		if (resp_info.resp_final_body != "" && should_cache_response(resp_headers))

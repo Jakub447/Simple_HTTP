@@ -28,19 +28,19 @@ namespace HTTP_Server
 		}
 
 		// Parse headers using HttpHeaders class
-		request_headers.parseHeaders(headersPart);
+		request_headers.parse_headers(headersPart);
 
 		return true;
 	}
 
 	std::vector<std::string> RequestAnalyzer::get_header(const std::string &key) const
 	{
-		return request_headers.getHeader(key);
+		return request_headers.get_header(key);
 	}
 
 	bool RequestAnalyzer::has_header(const std::string &key) const
 	{
-		return request_headers.hasHeader(key);
+		return request_headers.has_header(key);
 	}
 
 	std::string RequestAnalyzer::get_body() const

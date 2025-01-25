@@ -16,13 +16,13 @@ namespace HTTP_Server
 				s.end());
 	}
 
-	void HTTPHeaders::addHeader(const std::string &key, const std::string &value)
+	void HTTPHeaders::add_header(const std::string &key, const std::string &value)
 	{
 		headers[key].push_back(value);
 	}
 
 	// Get all values associated with a header key
-	std::vector<std::string> HTTPHeaders::getHeader(const std::string &key) const
+	std::vector<std::string> HTTPHeaders::get_header(const std::string &key) const
 	{
 		auto it = headers.find(key);
 		if (it != headers.end())
@@ -33,18 +33,18 @@ namespace HTTP_Server
 	}
 
 	// Check if a header exists
-	bool HTTPHeaders::hasHeader(const std::string &key) const
+	bool HTTPHeaders::has_header(const std::string &key) const
 	{
 		return headers.find(key) != headers.end();
 	}
 
 	// Remove a specific header key and all its associated values
-	void HTTPHeaders::removeHeader(const std::string &key)
+	void HTTPHeaders::remove_header(const std::string &key)
 	{
 		headers.erase(key);
 	}
 
-	void HTTPHeaders::parseHeaders(const std::string &headersString)
+	void HTTPHeaders::parse_headers(const std::string &headersString)
 	{
 		std::istringstream stream(headersString);
 		std::string line;
@@ -62,13 +62,13 @@ namespace HTTP_Server
 				trim(key);
 				trim(value);
 
-				addHeader(key, value);
+				add_header(key, value);
 			}
 		}
 	}
 
 	// This is your existing function, modified to return a concatenated string
-	std::string HTTPHeaders::GetAllHeaders() const
+	std::string HTTPHeaders::Get_all_headers() const
 	{
 		std::string result;
 
@@ -84,7 +84,7 @@ namespace HTTP_Server
 		return result;
 	}
 
-	void HTTPHeaders::printAllHeaders() const
+	void HTTPHeaders::print_all_headers() const
 	{
 		for (const auto &[key, values] : headers)
 		{
@@ -97,8 +97,8 @@ namespace HTTP_Server
 
 	bool HTTPHeaders::is_connection_closed() const
 	{
-		// Use the getHeader method to fetch the values associated with the "Connection" key
-		std::vector<std::string> connectionValues = getHeader("Connection");
+		// Use the get_header method to fetch the values associated with the "Connection" key
+		std::vector<std::string> connectionValues = get_header("Connection");
 
 		// Iterate through the values to see if "close" is specified
 		for (const auto &value : connectionValues)
@@ -116,7 +116,7 @@ namespace HTTP_Server
 		return false; // Connection is not closed (persistent)
 	}
 
-	// Update the GetAllHeaders to return a vector of pairs
+	// Update the Get_all_headers to return a vector of pairs
 	std::vector<std::pair<std::string, std::string>> HTTPHeaders::get_all_header_pairs() const {
 		std::vector<std::pair<std::string, std::string>> result;
 		for (const auto &[key, values] : headers)
