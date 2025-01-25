@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <array>
+#include <cstdarg> // For va_list, va_start, va_end
 
 namespace lib_logger
 {
@@ -58,7 +59,7 @@ namespace lib_logger
 		file_stream_.open(filename, std::ios::app);
 	}
 
-	void Logger::log(LogLevel level, const std::string &message, const char *file, int line)
+	void Logger::log(LogLevel level, const std::string &message, const char *file, int line, ...)
 	{
 		if (level < log_level_)
 			return;
@@ -68,13 +69,17 @@ namespace lib_logger
 		// Check if the log file needs rotation
 		Rotate_log_file();
 
-		std::string formatted_message = Format_message(level, message, file, line);
+		va_list args;
+		va_start(args, line);
+		std::string formatted_message = Format_message(level, message, file, line, args);
+		va_end(args);
 
 		// Print to console
 		std::cout << formatted_message << std::endl;
 
 		// Open log file if not open, or append to the file
-		if (!file_stream_.is_open()){
+		if (!file_stream_.is_open())
+		{
 			file_stream_.open(log_file_, std::ios::app);
 		}
 		file_stream_ << formatted_message << std::endl;
@@ -119,23 +124,36 @@ namespace lib_logger
 		}
 	}
 
-	std::string Logger::Format_message(LogLevel level, const std::string &message, const char *file, int line)
+	std::string Logger::Format_message(LogLevel level, const std::string &message, const char *file, int line, va_list args)
 	{
-		std::string formatted_message;
-		// Add timestamp, level, etc., to the message
-		// ...
+		std::ostringstream oss;
 
-		std::string file_to_print = "";
-		if (level > LogLevel::DEBUG)
+		// Add timestamp
+		std::time_t now = std::time(nullptr);
+		std::tm *tm = std::localtime(&now);
+		oss << std::put_time(tm, "%Y-%m-%d %H:%M:%S") << " ";
+
+		// Add log level
+		oss << log_level_to_color(level) << "[*" << log_level_to_string(level) << "*] ";
+
+		// Add timestamp for log entry
+		oss << "[" << get_date() << "] ";
+
+		// Format the main message
+		char buffer[1024];
+		std::vsnprintf(buffer, sizeof(buffer), message.c_str(), args);
+		oss << buffer;
+
+		// If level is more severe than DEBUG, add file and line number
+		if (level <= LogLevel::DEBUG)
 		{
-			formatted_message = log_level_to_color(level) + "[*" + log_level_to_string(level) + "*]" + "[" + get_date() + "]" + message + "\033[0m";
-		}
-		else
-		{
-			formatted_message = log_level_to_color(level) + "[*" + log_level_to_string(level) + "*]" + "[" + get_date() + "]" + message + " ***" + file + " " + std::to_string(line) + "***" + "\033[0m";
+			oss << " ***" << file << " " << line << "***";
 		}
 
-		return formatted_message;
+		// Close the color formatting
+		oss << "\033[0m";
+
+		return oss.str();
 	}
 
 }
