@@ -18,6 +18,7 @@ namespace HTTP_Server
 	// Function to convert FileOpenMode to std::ios flags
 	static std::ios_base::openmode to_open_mode(bool is_binary)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (is_binary)
 		{
 			return std::ios::in | std::ios::binary;
@@ -30,6 +31,7 @@ namespace HTTP_Server
 
 	static int write_string_to_file(const std::string &content, const std::string &filename, bool is_binary)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		// Determine the open mode based on is_binary
 		std::ios_base::openmode mode = is_binary ? (std::ios::binary | std::ios::out) : std::ios::out;
 
@@ -74,13 +76,14 @@ namespace HTTP_Server
 
 	int PUTHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		lib_logger::LOG(lib_logger::LogLevel::INFO, "serving PUT method");
 		resp_info.prot_ver = req_info.prot_ver;
 		resp_info.resp_code = 200;
 		resp_info.status_message = "OK";
 
 		std::string filename = concatenate_path(root_dir, req_info.URI);
-		lib_logger::LOG(lib_logger::LogLevel::DEBUG, "File: %s", filename);
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG, "File: %s", filename.c_str());
 
 		write_string_to_file(req_info.body, filename, false);
 

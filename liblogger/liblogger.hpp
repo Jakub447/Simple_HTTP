@@ -58,6 +58,6 @@ namespace lib_logger
 	};
 
 	// Convenience macro for logging with file and line info
-	#define LOG(level, message, ...) Logger::Instance().log(level, message, __FILE__, __LINE__, ##__VA_ARGS__)
+	#define LOG(level, message, ...) Logger::Instance().log(level, message, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 }
 #endif // LIBLOGGER_H

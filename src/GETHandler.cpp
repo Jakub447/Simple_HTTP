@@ -18,6 +18,7 @@ namespace HTTP_Server
 	// Function to convert FileOpenMode to std::ios flags
 	static std::ios_base::openmode to_open_mode(bool is_binary)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (is_binary)
 		{
 			return std::ios::in | std::ios::binary;
@@ -30,6 +31,7 @@ namespace HTTP_Server
 
 	static std::string read_file_to_string(const std::string &filename, bool is_binary)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::ifstream file(filename, to_open_mode(is_binary));
 		if (!file)
 		{
@@ -45,6 +47,7 @@ namespace HTTP_Server
 	// Function to generate an ETag based on the content of a file
 	static std::string generate_ETag(const std::string &filename)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::ifstream file(filename, std::ios::binary);
 		if (!file)
 			return "";
@@ -68,6 +71,7 @@ namespace HTTP_Server
 
 	static bool should_cache_response(const HTTPHeaders &headers)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		// Check for a `Cache-Control` header with `no-store` directive
 		if (headers.has_header("Cache-Control"))
 		{
@@ -84,13 +88,14 @@ namespace HTTP_Server
 
 	int GETHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		lib_logger::LOG(lib_logger::LogLevel::INFO,"serving GET method");
 		resp_info.prot_ver = req_info.prot_ver;
 		resp_info.resp_code = 200;
 		resp_info.status_message = "OK";
 
 		std::string filename = concatenate_path(root_dir, req_info.URI);
-		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"filename after fun: %s", filename);
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"filename after fun: %s", filename.c_str());
 
 		std::string currentETag = generate_ETag(filename);
 		std::string cache_key = req_info.URI; // Use the URI as the cache key
@@ -113,7 +118,7 @@ namespace HTTP_Server
 		resp_headers.add_header("ETag", currentETag);
 		resp_headers.add_header("Cache-Control", "max-age=60");
 
-		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"File: %s", filename);
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"File: %s", filename.c_str());
 
 		MimeTypeRecognizer recognizer;
 		MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);

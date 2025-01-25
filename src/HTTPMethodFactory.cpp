@@ -12,6 +12,7 @@ namespace HTTP_Server
 
 	std::unique_ptr<IMethodHandler> HTTPMethodFactory::create_handler(const HTTPMethod &method)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 
 		switch (method)
 		{

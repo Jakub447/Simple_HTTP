@@ -1,10 +1,13 @@
 #include "HTTP_connection_info.hpp"
 
+#include "../liblogger/liblogger.hpp"
+
 namespace HTTP_Server
 {
 
 	std::string http_method_to_string(HTTPMethod method)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		switch (method)
 		{
 		case GET:

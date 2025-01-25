@@ -24,12 +24,14 @@ namespace HTTP_Server
 	// Helper function to set a socket as non-blocking
 	static void set_non_blocking(int socket)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		int flags = fcntl(socket, F_GETFL, 0);
 		fcntl(socket, F_SETFL, flags | O_NONBLOCK);
 	}
 
 	int HTTPServer::server_init()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 
 		lib_logger::Logger::Instance().Set_log_level(lib_logger::LogLevel::TRACE);
 		//lib_logger::Logger::Instance().Set_max_file_size(1024 * 1024);
@@ -93,6 +95,7 @@ namespace HTTP_Server
 
 	void HTTPServer::run()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		ResponseCache response_cache;
 
 		while (true)
@@ -130,6 +133,7 @@ namespace HTTP_Server
 
 	void HTTPServer::handle_new_connection()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		sockaddr_in client_addr{};
 		socklen_t client_len = sizeof(client_addr);
 		int client_fd = accept(server_socket, (struct sockaddr *)&client_addr, &client_len);
@@ -146,6 +150,7 @@ namespace HTTP_Server
 
 	void HTTPServer::handle_client_request(int client_fd, ResponseCache &response_cache)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		char buffer[1024];
 		int bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
@@ -166,8 +171,8 @@ namespace HTTP_Server
 
 		//analyzer.get_headers().print_all_headers();
 		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"HTTP ver: %d", analyzer.get_prot());
-		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"HTTP method: %s",  http_method_to_string(analyzer.get_method()));
-		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"URI: %s", analyzer.get_URI());
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"HTTP method: %s",  http_method_to_string(analyzer.get_method()).c_str());
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"URI: %s", analyzer.get_URI().c_str());
 
 		ResponseBuilder resp_builder(analyzer.get_info(), root_directory, analyzer.get_headers(), analyzer.get_body());
 	
@@ -226,7 +231,7 @@ namespace HTTP_Server
 		}
 
 		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"=========================Request served:===========================");
-		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"Status: %s code: %d", resp_builder.get_resp_status(), resp_builder.get_resp_code());
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"Status: %s code: %d", resp_builder.get_resp_status().c_str(), resp_builder.get_resp_code());
 
 		clients[client_fd].last_active = std::chrono::steady_clock::now(); // Update last activity
 
@@ -240,6 +245,7 @@ namespace HTTP_Server
 
 	void HTTPServer::check_for_timeouts()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		auto now = std::chrono::steady_clock::now();
 
 		// Iterate through clients and close those that exceed CLIENT_TIMEOUT
@@ -263,6 +269,7 @@ namespace HTTP_Server
 
 	void HTTPServer::remove_client(int client_fd)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (clients.find(client_fd) == clients.end())
 			return; // Skip if client already removed
 
@@ -280,6 +287,7 @@ namespace HTTP_Server
 
 	HTTPServer::~HTTPServer()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		close(server_socket);
 		for (const auto &client : clients)
 		{

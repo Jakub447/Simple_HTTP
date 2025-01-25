@@ -3,10 +3,13 @@
 #include <string>
 #include "RequestAnalyzer.hpp"
 
+#include "../liblogger/liblogger.hpp"
+
 namespace HTTP_Server
 {
 	bool RequestAnalyzer::parse_request()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		size_t headerEndPos = raw_request.find("\r\n\r\n");
 		if (headerEndPos == std::string::npos)
 		{
@@ -35,22 +38,26 @@ namespace HTTP_Server
 
 	std::vector<std::string> RequestAnalyzer::get_header(const std::string &key) const
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		return request_headers.get_header(key);
 	}
 
 	bool RequestAnalyzer::has_header(const std::string &key) const
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		return request_headers.has_header(key);
 	}
 
 	std::string RequestAnalyzer::get_body() const
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		return body;
 	}
 
 	// Function to convert string to HTTPMethod enum
 	static HTTPMethod parse_method(const std::string &method)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (method == "GET")
 			return HTTPMethod::GET;
 		// if (method == "POST")
@@ -65,6 +72,7 @@ namespace HTTP_Server
 	// Function to parse the request line (Method, URI, Protocol Version)
 	void RequestAnalyzer::parse_request_line(const std::string &line)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::istringstream stream(line);
 		std::string method_str, version_str;
 
@@ -79,6 +87,7 @@ namespace HTTP_Server
 
 	bool RequestAnalyzer::validate_cache(const std::string& clientETag, const std::string& currentETag) const
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		return clientETag == currentETag;
 	}
 }
