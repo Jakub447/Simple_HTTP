@@ -31,9 +31,16 @@ namespace HTTP_Server
 	int HTTPServer::server_init()
 	{
 
-		lib_logger::Logger::Instance().Set_log_level(lib_logger::LogLevel::DEBUG);
+		lib_logger::Logger::Instance().Set_log_level(lib_logger::LogLevel::TRACE);
+		lib_logger::Logger::Instance().Set_max_file_size(1024 * 1024);
+		lib_logger::Logger::Instance().Set_output_file("log-1.txt");
 
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"this is a test");
 		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::INFO,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::WARNING,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::ERROR,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::CRITICAL,"this is a test");
 
 		// Create a socket
 		server_socket = socket(AF_INET, SOCK_STREAM, 0);
