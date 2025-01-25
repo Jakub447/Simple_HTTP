@@ -27,7 +27,7 @@ namespace lib_logger
 	}
 
 	// Sample Implementation of methods
-	void Logger::SetOutputFile(const std::string &filename)
+	void Logger::Set_output_file(const std::string &filename)
 	{
 		std::lock_guard<std::mutex> lock(mtx_);
 		if (file_stream_.is_open())
@@ -35,13 +35,13 @@ namespace lib_logger
 		file_stream_.open(filename, std::ios::app);
 	}
 
-	void Logger::Log(LogLevel level, const std::string &message, const char *file, int line)
+	void Logger::log(LogLevel level, const std::string &message, const char *file, int line)
 	{
 		if (level < log_level_)
 			return;
 
 		std::lock_guard<std::mutex> lock(mtx_);
-		std::string formatted_message = FormatMessage(level, message, file, line);
+		std::string formatted_message = Format_message(level, message, file, line);
 
 		// Print to console
 		std::cout << formatted_message << std::endl;
@@ -53,7 +53,7 @@ namespace lib_logger
 		}
 	}
 
-	std::string Logger::FormatMessage(LogLevel level, const std::string &message, const char *file, int line)
+	std::string Logger::Format_message(LogLevel level, const std::string &message, const char *file, int line)
 	{
 		std::string formatted_message;
 		// Add timestamp, level, etc., to the message

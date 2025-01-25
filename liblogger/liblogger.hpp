@@ -12,7 +12,7 @@ namespace lib_logger
 {
 
 // Convenience macro for logging with file and line info
-#define LOG(level, message) Logger::Instance().Log(level, message, __FILE__, __LINE__)
+#define LOG(level, message) Logger::Instance().log(level, message, __FILE__, __LINE__)
 
 
 	enum class LogLevel
@@ -34,10 +34,10 @@ namespace lib_logger
 			return instance;
 		}
 
-		void SetLogLevel(LogLevel level) { log_level_ = level; }
-		void SetOutputFile(const std::string &filename);
+		void Set_log_level(LogLevel level) { log_level_ = level; }
+		void Set_output_file(const std::string &filename);
 
-		void Log(LogLevel level, const std::string &message, const char *file, int line);
+		void log(LogLevel level, const std::string &message, const char *file, int line);
 
 	private:
 		Logger() : log_level_(LogLevel::INFO) {}
@@ -47,7 +47,7 @@ namespace lib_logger
 				file_stream_.close();
 		}
 
-		std::string FormatMessage(LogLevel level, const std::string &message, const char *file, int line);
+		std::string Format_message(LogLevel level, const std::string &message, const char *file, int line);
 
 		LogLevel log_level_;
 		std::ofstream file_stream_;

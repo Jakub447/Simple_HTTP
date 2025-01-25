@@ -31,7 +31,7 @@ namespace HTTP_Server
 	int HTTPServer::server_init()
 	{
 
-		lib_logger::Logger::Instance().SetLogLevel(lib_logger::LogLevel::DEBUG);
+		lib_logger::Logger::Instance().Set_log_level(lib_logger::LogLevel::DEBUG);
 
 		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"this is a test");
 
