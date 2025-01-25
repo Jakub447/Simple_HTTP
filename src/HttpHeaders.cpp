@@ -1,5 +1,7 @@
 #include "HttpHeaders.hpp"
 
+#include "../liblogger/liblogger.hpp"
+
 namespace HTTP_Server
 {
 	// Trims leading and trailing whitespace from a string
@@ -90,7 +92,7 @@ namespace HTTP_Server
 		{
 			for (const auto &value : values)
 			{
-				std::cout << key << ": " << value << std::endl;
+				lib_logger::LOG(lib_logger::LogLevel::INFO,"%s:%s",key,value);
 			}
 		}
 	}

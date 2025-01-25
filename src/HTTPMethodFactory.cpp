@@ -5,6 +5,8 @@
 #include "GETHandler.hpp"
 #include "PUTHandler.hpp"
 
+#include "../liblogger/liblogger.hpp"
+
 namespace HTTP_Server
 {
 
@@ -19,7 +21,7 @@ namespace HTTP_Server
 			return std::make_unique<PUTHandler>();
 
 		default:
-			std::cout << "Invalid option!" << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Invalid option!");
 			break;
 		}
 		return nullptr;

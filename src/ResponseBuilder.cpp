@@ -15,6 +15,8 @@
 #include <filesystem>
 #include <fstream>
 
+#include "../liblogger/liblogger.hpp"
+
 namespace HTTP_Server
 {
 	static std::string prot_version_to_string(const int &prot_ver)
@@ -58,12 +60,10 @@ namespace HTTP_Server
 	{
 		for (const auto &fileName : defaultFiles)
 		{
-			std::cout << "fileName: " << fileName << std::endl;
-			// std::cout << "defaultFiles: "<< defaultFiles << std::endl;
-			std::cout << "URI: " << URI << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"fileName: %s", fileName);
+			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"URI: %s", URI);
 
 			std::ifstream file(concatenate_path(root_dir, fileName));
-			// std::cout << "file: "<< file << std::endl;
 			if (file.good())
 			{
 				return URI + fileName; // Return the first file that exists
@@ -128,12 +128,12 @@ namespace HTTP_Server
 		auto handler = HTTPMethodFactory::create_handler(req_info.method);
 		if (handler)
 		{
-			std::cout << "handler found!" << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"handler found!");
 			return handler->handle_method(root_dir, req_info, req_headers, resp_headers, resp_info, response_cache, cache_entry, is_served_from_cache);
 		}
 		else
 		{
-			std::cout << "handler not found!" << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"handler not found!");
 			return -1;
 		}
 	}
