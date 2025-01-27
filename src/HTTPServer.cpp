@@ -13,6 +13,7 @@
 #include "RequestAnalyzer.hpp"
 #include "ResponseBuilder.hpp"
 #include "../liblogger/liblogger.hpp"
+#include "error_codes.hpp"
 
 namespace HTTP_Server
 {
@@ -40,7 +41,7 @@ namespace HTTP_Server
 		if (server_socket == -1)
 		{
 			std::cerr << "Failed to create socket" << std::endl;
-			return -1;
+			return APP_ERR_SOCK_CREAT;
 		}
 
 		set_non_blocking(server_socket);
@@ -56,7 +57,7 @@ namespace HTTP_Server
 		{
 			perror("setsockopt failed");
 			close(server_socket);
-			return -1;
+			return APP_ERR_SOCK_OPT;
 		}
 
 		// Bind the socket to the specified port
@@ -64,7 +65,7 @@ namespace HTTP_Server
 		{
 			std::cerr << "Binding failed: " << strerror(errno) << std::endl;
 			close(server_socket);
-			return -1;
+			return APP_ERR_BIND;
 		}
 
 		// Listen for incoming connections
@@ -72,13 +73,13 @@ namespace HTTP_Server
 		{
 			std::cerr << "Listen failed" << std::endl;
 			close(server_socket);
-			return -1;
+			return APP_ERR_LISTEN;
 		}
 
 		poll_fds.push_back({server_socket, POLLIN, 0}); // Add server_fd to poll
 
 		std::cout << "Server is running on port " << port << "..." << std::endl;
-		return 0;
+		return APP_ERR_OK;
 	}
 
 	void HTTPServer::run()

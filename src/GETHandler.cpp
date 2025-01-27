@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 #include "utils.hpp"
 
+#include "error_codes.hpp"
+
 namespace HTTP_Server
 {
 
@@ -84,8 +86,8 @@ namespace HTTP_Server
 	{
 		std::cout << "serving GET method" << std::endl;
 		resp_info.prot_ver = req_info.prot_ver;
-		resp_info.resp_code = 200;
-		resp_info.status_message = "OK";
+		resp_info.resp_code = HTTP_ERR_OK;
+		resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 
 		std::string filename = concatenate_path(root_dir, req_info.URI);
 		std::cout << "filename after fun:" << filename << std::endl;
@@ -102,10 +104,10 @@ namespace HTTP_Server
 			is_served_from_cache = true;
 			cache_entry = std::make_unique<CacheEntry>(cached_entry.value());
 
-			// resp_info.resp_code = 304;
-			// resp_info.status_message = "NOT MODIFIED";
+			// resp_info.resp_code = HTTP_ERR_NOT_MODIFIED;
+			// resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 			resp_info.resp_final_body = cached_entry->body;
-			return 0; // Successfully served from cache
+			return APP_ERR_OK; // Successfully served from cache
 		}
 
 		resp_headers.add_header("ETag", currentETag);
@@ -120,8 +122,8 @@ namespace HTTP_Server
 
 		if(resp_info.resp_final_body == "")
 		{
-			resp_info.resp_code = 404;
-			resp_info.status_message = "NOT FOUND";
+			resp_info.resp_code = HTTP_ERR_NOT_FOUND;
+			resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 
 			std::cout << "NOT FOUND " << std::endl;
 		}
@@ -135,6 +137,6 @@ namespace HTTP_Server
 			response_cache.put(cache_key, resp_info.resp_final_body, resp_headers, currentETag);
 		}
 
-		return 0;
+		return APP_ERR_OK;
 	}
 }

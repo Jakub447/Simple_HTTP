@@ -10,6 +10,8 @@
 #include <sys/stat.h>
 #include "utils.hpp"
 
+#include "error_codes.hpp"
+
 namespace HTTP_Server
 {
 
@@ -26,80 +28,79 @@ namespace HTTP_Server
 		}
 	}
 
-static int write_string_to_file(const std::string &content, const std::string &filename, bool is_binary)
-{
-    // Determine the open mode based on is_binary
-    std::ios_base::openmode mode = is_binary ? (std::ios::binary | std::ios::out) : std::ios::out;
+	static int write_string_to_file(const std::string &content, const std::string &filename, bool is_binary)
+	{
+		// Determine the open mode based on is_binary
+		std::ios_base::openmode mode = is_binary ? (std::ios::binary | std::ios::out) : std::ios::out;
 
-    // Ensure the directory exists
-    try
-    {
-        std::filesystem::path filePath(filename);
-        std::filesystem::create_directories(filePath.parent_path());
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error: Unable to create directories for file: " << e.what() << std::endl;
-        return -1;
-    }
+		// Ensure the directory exists
+		try
+		{
+			std::filesystem::path filePath(filename);
+			std::filesystem::create_directories(filePath.parent_path());
+		}
+		catch (const std::exception &e)
+		{
+			std::cerr << "Error: Unable to create directories for file: " << e.what() << std::endl;
+			return APP_ERR_NO_DIR;
+		}
 
-    // Open the file with the appropriate mode
-    std::ofstream file(filename, mode);
-    if (!file)
-    {
-        // Log the error
-        std::cerr << "Error: Unable to open file for writing: " << filename << std::endl;
-        return -1;
-    }
+		// Open the file with the appropriate mode
+		std::ofstream file(filename, mode);
+		if (!file)
+		{
+			// Log the error
+			std::cerr << "Error: Unable to open file for writing: " << filename << std::endl;
+			return APP_ERR_NO_FILE_OPEN;
+		}
 
-    // Write the content to the file
-    try
-    {
-        file << content;
-        if (!file)
-        {
-            throw std::ios_base::failure("Failed to write to file.");
-        }
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error: Exception while writing to file: " << e.what() << std::endl;
-        return -1;
-    }
+		// Write the content to the file
+		try
+		{
+			file << content;
+			if (!file)
+			{
+				throw std::ios_base::failure("Failed to write to file.");
+			}
+		}
+		catch (const std::exception &e)
+		{
+			std::cerr << "Error: Exception while writing to file: " << e.what() << std::endl;
+			return APP_ERR_FILE_WRITE;
+		}
 
-    return 0; // Success
-}
+		return APP_ERR_OK; // Success
+	}
 
 	int PUTHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
 	{
 		std::cout << "serving PUT method" << std::endl;
 		resp_info.prot_ver = req_info.prot_ver;
-		resp_info.resp_code = 200;
-		resp_info.status_message = "OK";
+		resp_info.resp_code = HTTP_ERR_OK;
+		resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 
 		std::string filename = concatenate_path(root_dir, req_info.URI);
 		std::cout << "filename after fun:" << filename << std::endl;
 
 		std::cout << "File: " << filename << std::endl;
 
-
 		write_string_to_file(req_info.body, filename, false);
 
-		//MimeTypeRecognizer recognizer;
-		//MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);
-		//resp_headers.add_header("Content-Type", file_mime_type_info.mimeType);
-		//resp_info.resp_final_body = read_file_to_string(filename, file_mime_type_info.is_binary);
+		// MimeTypeRecognizer recognizer;
+		// MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);
+		// resp_headers.add_header("Content-Type", file_mime_type_info.mimeType);
+		// resp_info.resp_final_body = read_file_to_string(filename, file_mime_type_info.is_binary);
 
-		//if(resp_info.resp_final_body == "")
+		// if(resp_info.resp_final_body == "")
 		//{
-		//	resp_info.resp_code = 404;
-		//	resp_info.status_message = "NOT FOUND";
+		//	resp_info.resp_code = HTTP_ERR_NOT_FOUND;
+		//	resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 
 		//	std::cout << "NOT FOUND " << std::endl;
 		//}
 
-		//resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
+		// resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
 
-		return 0;
+		return APP_ERR_OK;
 	}
 }

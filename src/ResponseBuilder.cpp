@@ -15,6 +15,8 @@
 #include <filesystem>
 #include <fstream>
 
+#include "error_codes.hpp"
+
 namespace HTTP_Server
 {
 	static std::string prot_version_to_string(const int &prot_ver)
@@ -50,7 +52,7 @@ namespace HTTP_Server
 		std::string status_message = resp_info.status_message;
 
 		resp_info.resp_final_header = protocol_string + " " + status_code + " " + status_message + "\r\n";
-		return 0;
+		return APP_ERR_OK;
 	}
 
 	// Function to find the first available default file
@@ -115,8 +117,8 @@ namespace HTTP_Server
 
 		if (altered_URI.empty())
 		{
-			resp_info.resp_code = 405;
-			resp_info.status_message = "NOT FOUND";
+			resp_info.resp_code = HTTP_ERR_METHOD_NOT_ALLOWED;
+			resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 			return -1;
 		}
 
@@ -193,13 +195,13 @@ namespace HTTP_Server
 
 		resp_info.resp_final_header += "\r\n";
 
-		return 0;
+		return APP_ERR_OK;
 	}
 
 	int ResponseBuilder::prepare_full_message()
 	{
 		resp_info.resp_full_message = resp_info.resp_final_header + resp_info.resp_final_body;
-		return 0;
+		return APP_ERR_OK;
 	}
 
 	std::string ResponseBuilder::get_full_message()
@@ -211,7 +213,7 @@ namespace HTTP_Server
 	{
 		resp_info.resp_code = new_resp_code;
 		resp_info.status_message = new_status_message;
-		return 0;
+		return APP_ERR_OK;
 	}
 
 }
