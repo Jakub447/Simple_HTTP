@@ -13,6 +13,7 @@
 #include "RequestAnalyzer.hpp"
 #include "ResponseBuilder.hpp"
 #include "../liblogger/liblogger.hpp"
+#include "error_codes.hpp"
 
 namespace HTTP_Server
 {
@@ -51,8 +52,10 @@ namespace HTTP_Server
 		server_socket = socket(AF_INET, SOCK_STREAM, 0);
 		if (server_socket == -1)
 		{
+
 			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Failed to create socket");
-			return -1;
+			return APP_ERR_SOCK_CREAT;
+
 		}
 
 		set_non_blocking(server_socket);
@@ -68,7 +71,7 @@ namespace HTTP_Server
 		{
 			perror("setsockopt failed");
 			close(server_socket);
-			return -1;
+			return APP_ERR_SOCK_OPT;
 		}
 
 		// Bind the socket to the specified port
@@ -76,7 +79,7 @@ namespace HTTP_Server
 		{
 			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Binding failed: %s", strerror(errno));
 			close(server_socket);
-			return -1;
+			return APP_ERR_BIND;
 		}
 
 		// Listen for incoming connections
@@ -84,13 +87,14 @@ namespace HTTP_Server
 		{
 			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Listen failed");
 			close(server_socket);
-			return -1;
+			return APP_ERR_LISTEN;
 		}
 
 		poll_fds.push_back({server_socket, POLLIN, 0}); // Add server_fd to poll
 
 		lib_logger::LOG(lib_logger::LogLevel::INFO,"Server is running on port: %d...", port);
-		return 0;
+		return APP_ERR_OK;
+
 	}
 
 	void HTTPServer::run()

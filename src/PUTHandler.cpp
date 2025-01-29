@@ -10,7 +10,11 @@
 #include <sys/stat.h>
 #include "utils.hpp"
 
+
 #include "../liblogger/liblogger.hpp"
+
+#include "error_codes.hpp"
+
 
 namespace HTTP_Server
 {
@@ -31,7 +35,9 @@ namespace HTTP_Server
 
 	static int write_string_to_file(const std::string &content, const std::string &filename, bool is_binary)
 	{
+
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
+
 		// Determine the open mode based on is_binary
 		std::ios_base::openmode mode = is_binary ? (std::ios::binary | std::ios::out) : std::ios::out;
 
@@ -43,8 +49,10 @@ namespace HTTP_Server
 		}
 		catch (const std::exception &e)
 		{
+
 			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to create directories for file: %s", e.what());
-			return -1;
+			return APP_ERR_NO_DIR;
+
 		}
 
 		// Open the file with the appropriate mode
@@ -53,7 +61,8 @@ namespace HTTP_Server
 		{
 			// Log the error
 			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file for writing: %s", filename);
-			return -1;
+			return APP_ERR_NO_FILE_OPEN;
+
 		}
 
 		// Write the content to the file
@@ -67,11 +76,13 @@ namespace HTTP_Server
 		}
 		catch (const std::exception &e)
 		{
+
 			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Exception while writing to file: %s", e.what());
-			return -1;
+			return APP_ERR_FILE_WRITE;
 		}
 
-		return 0; // Success
+		return APP_ERR_OK; // Success
+
 	}
 
 	int PUTHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
@@ -79,11 +90,13 @@ namespace HTTP_Server
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		lib_logger::LOG(lib_logger::LogLevel::INFO, "serving PUT method");
 		resp_info.prot_ver = req_info.prot_ver;
-		resp_info.resp_code = 200;
-		resp_info.status_message = "OK";
+		resp_info.resp_code = HTTP_ERR_OK;
+		resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 
 		std::string filename = concatenate_path(root_dir, req_info.URI);
+
 		lib_logger::LOG(lib_logger::LogLevel::DEBUG, "File: %s", filename.c_str());
+
 
 		write_string_to_file(req_info.body, filename, false);
 
@@ -94,14 +107,14 @@ namespace HTTP_Server
 
 		// if(resp_info.resp_final_body == "")
 		//{
-		//	resp_info.resp_code = 404;
-		//	resp_info.status_message = "NOT FOUND";
+		//	resp_info.resp_code = HTTP_ERR_NOT_FOUND;
+		//	resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 
 		//	std::cout << "NOT FOUND " << std::endl;
 		//}
 
 		// resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
 
-		return 0;
+		return APP_ERR_OK;
 	}
 }
