@@ -10,7 +10,11 @@
 #include <sys/stat.h>
 #include "utils.hpp"
 
+
+#include "../liblogger/liblogger.hpp"
+
 #include "error_codes.hpp"
+
 
 namespace HTTP_Server
 {
@@ -18,6 +22,7 @@ namespace HTTP_Server
 	// Function to convert FileOpenMode to std::ios flags
 	static std::ios_base::openmode to_open_mode(bool is_binary)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (is_binary)
 		{
 			return std::ios::in | std::ios::binary;
@@ -30,6 +35,9 @@ namespace HTTP_Server
 
 	static int write_string_to_file(const std::string &content, const std::string &filename, bool is_binary)
 	{
+
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
+
 		// Determine the open mode based on is_binary
 		std::ios_base::openmode mode = is_binary ? (std::ios::binary | std::ios::out) : std::ios::out;
 
@@ -41,8 +49,10 @@ namespace HTTP_Server
 		}
 		catch (const std::exception &e)
 		{
-			std::cerr << "Error: Unable to create directories for file: " << e.what() << std::endl;
+
+			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to create directories for file: %s", e.what());
 			return APP_ERR_NO_DIR;
+
 		}
 
 		// Open the file with the appropriate mode
@@ -50,8 +60,9 @@ namespace HTTP_Server
 		if (!file)
 		{
 			// Log the error
-			std::cerr << "Error: Unable to open file for writing: " << filename << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file for writing: %s", filename);
 			return APP_ERR_NO_FILE_OPEN;
+
 		}
 
 		// Write the content to the file
@@ -65,24 +76,27 @@ namespace HTTP_Server
 		}
 		catch (const std::exception &e)
 		{
-			std::cerr << "Error: Exception while writing to file: " << e.what() << std::endl;
+
+			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Exception while writing to file: %s", e.what());
 			return APP_ERR_FILE_WRITE;
 		}
 
 		return APP_ERR_OK; // Success
+
 	}
 
 	int PUTHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
 	{
-		std::cout << "serving PUT method" << std::endl;
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
+		lib_logger::LOG(lib_logger::LogLevel::INFO, "serving PUT method");
 		resp_info.prot_ver = req_info.prot_ver;
 		resp_info.resp_code = HTTP_ERR_OK;
 		resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
 
 		std::string filename = concatenate_path(root_dir, req_info.URI);
-		std::cout << "filename after fun:" << filename << std::endl;
 
-		std::cout << "File: " << filename << std::endl;
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG, "File: %s", filename.c_str());
+
 
 		write_string_to_file(req_info.body, filename, false);
 

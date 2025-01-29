@@ -5,11 +5,14 @@
 #include "GETHandler.hpp"
 #include "PUTHandler.hpp"
 
+#include "../liblogger/liblogger.hpp"
+
 namespace HTTP_Server
 {
 
 	std::unique_ptr<IMethodHandler> HTTPMethodFactory::create_handler(const HTTPMethod &method)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 
 		switch (method)
 		{
@@ -19,7 +22,7 @@ namespace HTTP_Server
 			return std::make_unique<PUTHandler>();
 
 		default:
-			std::cout << "Invalid option!" << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Invalid option!");
 			break;
 		}
 		return nullptr;

@@ -25,23 +25,37 @@ namespace HTTP_Server
 	// Helper function to set a socket as non-blocking
 	static void set_non_blocking(int socket)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		int flags = fcntl(socket, F_GETFL, 0);
 		fcntl(socket, F_SETFL, flags | O_NONBLOCK);
 	}
 
 	int HTTPServer::server_init()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 
-		lib_logger::Logger::Instance().SetLogLevel(lib_logger::LogLevel::DEBUG);
+		lib_logger::Logger::Instance().Set_log_level(lib_logger::LogLevel::TRACE);
+		//lib_logger::Logger::Instance().Set_max_file_size(1024 * 1024);
+		//lib_logger::Logger::Instance().Set_output_file("log-1.txt");
 
+		std::string test_string = "world";
+		lib_logger::LOG(lib_logger::LogLevel::TRACE, "Hello, %s! This is a test.", test_string.c_str());
+
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"this is a test");
 		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::INFO,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::WARNING,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::ERROR,"this is a test");
+		lib_logger::LOG(lib_logger::LogLevel::CRITICAL,"this is a test");
 
 		// Create a socket
 		server_socket = socket(AF_INET, SOCK_STREAM, 0);
 		if (server_socket == -1)
 		{
-			std::cerr << "Failed to create socket" << std::endl;
+
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Failed to create socket");
 			return APP_ERR_SOCK_CREAT;
+
 		}
 
 		set_non_blocking(server_socket);
@@ -63,7 +77,7 @@ namespace HTTP_Server
 		// Bind the socket to the specified port
 		if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1)
 		{
-			std::cerr << "Binding failed: " << strerror(errno) << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Binding failed: %s", strerror(errno));
 			close(server_socket);
 			return APP_ERR_BIND;
 		}
@@ -71,19 +85,21 @@ namespace HTTP_Server
 		// Listen for incoming connections
 		if (listen(server_socket, 10) == -1)
 		{
-			std::cerr << "Listen failed" << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Listen failed");
 			close(server_socket);
 			return APP_ERR_LISTEN;
 		}
 
 		poll_fds.push_back({server_socket, POLLIN, 0}); // Add server_fd to poll
 
-		std::cout << "Server is running on port " << port << "..." << std::endl;
+		lib_logger::LOG(lib_logger::LogLevel::INFO,"Server is running on port: %d...", port);
 		return APP_ERR_OK;
+
 	}
 
 	void HTTPServer::run()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		ResponseCache response_cache;
 
 		while (true)
@@ -121,6 +137,7 @@ namespace HTTP_Server
 
 	void HTTPServer::handle_new_connection()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		sockaddr_in client_addr{};
 		socklen_t client_len = sizeof(client_addr);
 		int client_fd = accept(server_socket, (struct sockaddr *)&client_addr, &client_len);
@@ -131,12 +148,13 @@ namespace HTTP_Server
 			poll_fds.push_back({client_fd, POLLIN, 0});
 			clients[client_fd] = {client_fd, std::chrono::steady_clock::now(), true};
 
-			std::cout << "Accepted new connection: " << client_fd << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"Accepted new connection: %d", client_fd);
 		}
 	}
 
 	void HTTPServer::handle_client_request(int client_fd, ResponseCache &response_cache)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		char buffer[1024];
 		int bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
@@ -149,18 +167,16 @@ namespace HTTP_Server
 		buffer[bytes_read] = '\0';
 		std::string request(buffer);
 
-		std::cout << "======================================================Received request:======================================================\n"
-				<< std::endl;
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"======================================================Received request:======================================================");
 
 		std::string http_req(request);
 		RequestAnalyzer analyzer(http_req);
 		analyzer.parse_request();
 
 		//analyzer.get_headers().print_all_headers();
-
-		std::cout << "HTTP ver: " << analyzer.get_prot() << std::endl;
-		std::cout << "HTTP method: " << http_method_to_string(analyzer.get_method()) << std::endl;
-		std::cout << "URI: " << analyzer.get_URI() << std::endl;
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"HTTP ver: %d", analyzer.get_prot());
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"HTTP method: %s",  http_method_to_string(analyzer.get_method()).c_str());
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"URI: %s", analyzer.get_URI().c_str());
 
 		ResponseBuilder resp_builder(analyzer.get_info(), root_directory, analyzer.get_headers(), analyzer.get_body());
 	
@@ -169,19 +185,19 @@ namespace HTTP_Server
 		bool is_served_from_cache = false;
 		if ((ret = resp_builder.handle_HTTP_request(response_cache, cache_entry, is_served_from_cache, analyzer.get_body())) != 0)
 		{
-			std::cout << "aborting handle_HTTP_request error: " << ret << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"aborting handle_HTTP_request error: %d", ret);
 			return;
 		}
 
 		if ((ret = resp_builder.prepare_headers(response_cache, cache_entry, is_served_from_cache)) != 0)
 		{
-			std::cout << "aborting prepare_headers error: " << ret << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"aborting prepare_headers error: %d", ret);
 			return;
 		}
 
 		if ((ret = resp_builder.prepare_full_message()) != 0)
 		{
-			std::cout << "aborting prepare_full_message error: " << ret << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"aborting prepare_full_message error: %d", ret);
 			return;
 		}
 
@@ -189,7 +205,7 @@ namespace HTTP_Server
 		{
 			if (errno == EPIPE || errno == ECONNRESET)
 			{
-				std::cerr << "Error sending headers: Broken pipe or connection reset" << std::endl;
+				lib_logger::LOG(lib_logger::LogLevel::ERROR,"sending headers: Broken pipe or connection reset");
 				remove_client(client_fd);
 				return;
 			}
@@ -206,22 +222,20 @@ namespace HTTP_Server
 				{
 					if (errno == EPIPE || errno == ECONNRESET)
 					{
-						std::cerr << "Error sending body: Broken pipe or connection reset" << std::endl;
+						lib_logger::LOG(lib_logger::LogLevel::ERROR,"sending body: Broken pipe or connection reset");
 						remove_client(client_fd);
 						break;
 					}
 					// Handle error
-					std::cout << "lol, sending error" << std::endl;
+					lib_logger::LOG(lib_logger::LogLevel::ERROR,"Error state of the connection");
 					break; // Exit the loop on error
 				}
 				totalSent += bytesSent; // Increment total sent by the number of bytes sent
-				//std::cout << "lol, sent: " << totalSent << std::endl;
-				//std::cout << "lol, left: " << resp_builder.get_body().size() - totalSent << std::endl;
 			}
 		}
 
-		std::cout << "=========================Request served:===========================\n" << std::endl;
-		std::cout << "Status: " << resp_builder.get_resp_status() << " Code: "<< resp_builder.get_resp_code() << std::endl;
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"=========================Request served:===========================");
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"Status: %s code: %d", resp_builder.get_resp_status().c_str(), resp_builder.get_resp_code());
 
 		clients[client_fd].last_active = std::chrono::steady_clock::now(); // Update last activity
 
@@ -235,6 +249,7 @@ namespace HTTP_Server
 
 	void HTTPServer::check_for_timeouts()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		auto now = std::chrono::steady_clock::now();
 
 		// Iterate through clients and close those that exceed CLIENT_TIMEOUT
@@ -243,7 +258,7 @@ namespace HTTP_Server
 			int client_fd = it->second.fd;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(now - it->second.last_active).count() > CLIENT_TIMEOUT)
 			{
-				std::cout << "Connection timed out: " << client_fd << std::endl;
+				lib_logger::LOG(lib_logger::LogLevel::DEBUG,"Connection timed out: %d", client_fd);
 
 				// Remove client resources safely, without modifying `clients` in `remove_client`
 				remove_client(client_fd);
@@ -258,11 +273,12 @@ namespace HTTP_Server
 
 	void HTTPServer::remove_client(int client_fd)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (clients.find(client_fd) == clients.end())
 			return; // Skip if client already removed
 
 		close(client_fd); // Close the client connection
-		std::cout << "Closed connection: " << client_fd << std::endl;
+		lib_logger::LOG(lib_logger::LogLevel::DEBUG,"Closed connection: %d", client_fd);
 
 		// Remove from poll_fds only, leave the map management to `check_for_timeouts`
 		auto poll_it = std::find_if(poll_fds.begin(), poll_fds.end(), [client_fd](const pollfd &pfd)
@@ -275,6 +291,7 @@ namespace HTTP_Server
 
 	HTTPServer::~HTTPServer()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		close(server_socket);
 		for (const auto &client : clients)
 		{

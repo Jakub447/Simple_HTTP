@@ -1,11 +1,14 @@
 #include "ResponseCache.hpp"
 #include <iostream>
 
+#include "../liblogger/liblogger.hpp"
+
 namespace HTTP_Server
 {
 	// Check if a header should be stored according to RFC 9111
 	bool ResponseCache::should_store_header(const std::string &headerName)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		// Define headers to store
 		static const std::vector<std::string> headersToStore = {
 			"Content-Type", "Content-Length", "Cache-Control", "Expires",
@@ -18,6 +21,7 @@ namespace HTTP_Server
 	// Retrieve a cache entry
 	std::optional<CacheEntry> ResponseCache::get(const std::string &key)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::lock_guard<std::mutex> lock(mutex);
 		auto it = cache.find(key);
 		if (it != cache.end())
@@ -39,6 +43,7 @@ namespace HTTP_Server
 	// Store a new cache entry
 	void ResponseCache::put(const std::string &key, const std::string &body, const HTTPHeaders &headers, const std::string &Etag)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::lock_guard<std::mutex> lock(mutex);
 		CacheEntry entry;
 		entry.body = body;
@@ -73,6 +78,7 @@ namespace HTTP_Server
 	// Update an existing cache entry
 	void ResponseCache::update(const std::string &key, const std::string &body, const HTTPHeaders &headers, const std::string &Etag)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::lock_guard<std::mutex> lock(mutex);
 		if (cache.find(key) != cache.end())
 		{
@@ -83,6 +89,7 @@ namespace HTTP_Server
 	// Generate cache-related headers for response
 	void ResponseCache::generate_cache_headers(HTTPHeaders &resp_headers, const CacheEntry &entry)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		resp_headers.add_header("ETag", entry.cached_Etag);
 		resp_headers.add_header("Cache-Control", "max-age=" + std::to_string(entry.max_age.count()));
 	}
@@ -90,6 +97,7 @@ namespace HTTP_Server
 	// Handle cache-related request headers to decide whether to serve from cache or revalidate
 	bool ResponseCache::validate_cache_entry(const std::optional<CacheEntry>& entry, const HTTPHeaders &request_headers)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		// Check for ETag revalidation
 		auto if_none_match = request_headers.get_header("If-None-Match");
 		if (!if_none_match.empty() && if_none_match.front() == entry->cached_Etag)
@@ -106,6 +114,7 @@ namespace HTTP_Server
 	// Update an existing cache entry by appending to the body and headers
 	void ResponseCache::update_and_append(const std::string &key, const std::string &additional_body, const HTTPHeaders &additional_headers, const std::string &Etag)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::lock_guard<std::mutex> lock(mutex);
 		auto it = cache.find(key);
 		if (it != cache.end())

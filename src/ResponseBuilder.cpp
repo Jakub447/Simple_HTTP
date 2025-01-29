@@ -15,12 +15,17 @@
 #include <filesystem>
 #include <fstream>
 
+
+#include "../liblogger/liblogger.hpp"
+
 #include "error_codes.hpp"
+
 
 namespace HTTP_Server
 {
 	static std::string prot_version_to_string(const int &prot_ver)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (11 == prot_ver)
 		{
 			return "1.1";
@@ -34,6 +39,7 @@ namespace HTTP_Server
 
 	std::string ResponseBuilder::prepare_protocol_version(const int &req_prot_ver)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::string protocol_string = "HTTP/" + prot_version_to_string(resp_info.prot_ver);
 		const std::string protocol_example = "HTTP/3.0";
 
@@ -47,6 +53,7 @@ namespace HTTP_Server
 
 	int ResponseBuilder::prepare_status_line()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::string protocol_string = prepare_protocol_version(resp_info.prot_ver);
 		std::string status_code = std::to_string(resp_info.resp_code);
 		std::string status_message = resp_info.status_message;
@@ -58,14 +65,13 @@ namespace HTTP_Server
 	// Function to find the first available default file
 	static std::string find_default_file(const std::string &root_dir, const std::string &URI, std::vector<std::string> defaultFiles)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		for (const auto &fileName : defaultFiles)
 		{
-			std::cout << "fileName: " << fileName << std::endl;
-			// std::cout << "defaultFiles: "<< defaultFiles << std::endl;
-			std::cout << "URI: " << URI << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"fileName: %s", fileName.c_str());
+			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"URI: %s", URI.c_str());
 
 			std::ifstream file(concatenate_path(root_dir, fileName));
-			// std::cout << "file: "<< file << std::endl;
 			if (file.good())
 			{
 				return URI + fileName; // Return the first file that exists
@@ -76,6 +82,7 @@ namespace HTTP_Server
 
 	static std::string alter_root_URI(const std::string &root_dir, const std::string &URI)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::vector<std::string> defaultFiles = {
 			"index.html",
 			"index.htm",
@@ -112,6 +119,7 @@ namespace HTTP_Server
 
 	int ResponseBuilder::handle_HTTP_request(ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache, std::string body)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 
 		std::string altered_URI = alter_root_URI(root_dir, req_info.URI);
 
@@ -130,18 +138,19 @@ namespace HTTP_Server
 		auto handler = HTTPMethodFactory::create_handler(req_info.method);
 		if (handler)
 		{
-			std::cout << "handler found!" << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"handler found!");
 			return handler->handle_method(root_dir, req_info, req_headers, resp_headers, resp_info, response_cache, cache_entry, is_served_from_cache);
 		}
 		else
 		{
-			std::cout << "handler not found!" << std::endl;
+			lib_logger::LOG(lib_logger::LogLevel::ERROR,"handler not found!");
 			return -1;
 		}
 	}
 
 	static std::string get_http_date()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		// Get the current time in GMT
 		std::time_t now = std::time(nullptr);
 		std::tm *gmtTime = std::gmtime(&now);
@@ -159,6 +168,7 @@ namespace HTTP_Server
 
 	int ResponseBuilder::prepare_headers(ResponseCache &response_cache, std::unique_ptr<CacheEntry>& cache_entry,const bool& is_served_from_cache)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		prepare_status_line();
 
 		if (is_served_from_cache)
@@ -200,17 +210,20 @@ namespace HTTP_Server
 
 	int ResponseBuilder::prepare_full_message()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		resp_info.resp_full_message = resp_info.resp_final_header + resp_info.resp_final_body;
 		return APP_ERR_OK;
 	}
 
 	std::string ResponseBuilder::get_full_message()
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		return resp_info.resp_full_message;
 	}
 
 	int ResponseBuilder::update_resp_info(int new_resp_code, std::string new_status_message)
 	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		resp_info.resp_code = new_resp_code;
 		resp_info.status_message = new_status_message;
 		return APP_ERR_OK;
