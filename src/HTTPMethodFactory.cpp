@@ -4,6 +4,7 @@
 #include "HTTP_connection_info.hpp"
 #include "GETHandler.hpp"
 #include "PUTHandler.hpp"
+#include "POSTHandler.hpp"
 
 #include "../liblogger/liblogger.hpp"
 
@@ -20,6 +21,8 @@ namespace HTTP_Server
 			return std::make_unique<GETHandler>();
 		case PUT:
 			return std::make_unique<PUTHandler>();
+		case POST:
+			return std::make_unique<POSTHandler>();
 
 		default:
 			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Invalid option!");

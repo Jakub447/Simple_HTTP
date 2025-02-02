@@ -64,6 +64,8 @@ namespace HTTP_Server
 		// return HTTPMethod::POST;
 		if (method == "PUT")
 			return HTTPMethod::PUT;
+		if (method == "POST")
+			return HTTPMethod::POST;
 		// if (method == "DELETE")
 		// return HTTPMethod::DELETE;
 		return HTTPMethod::UNKNOWN_METHOD;

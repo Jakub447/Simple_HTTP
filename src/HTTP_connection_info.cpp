@@ -16,6 +16,8 @@ namespace HTTP_Server
 		//	return "POST";
 		case PUT:
 			return "PUT";
+		case POST:
+			return "POST";
 		// case DELETE:
 		//	return "DELETE";
 		// case PATCH:

@@ -10,6 +10,7 @@ namespace HTTP_Server
 	{
 		GET,
 		PUT,
+		POST,
 		UNKNOWN_METHOD
 	};
 

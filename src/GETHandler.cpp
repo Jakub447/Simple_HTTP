@@ -55,6 +55,7 @@ namespace HTTP_Server
 			content.append(buffer.data(), file.gcount());
 		}
 
+		file.close();
 		return content;
 	}
 
