@@ -5,6 +5,10 @@
 #include "GETHandler.hpp"
 #include "PUTHandler.hpp"
 #include "POSTHandler.hpp"
+#include "DELETEHandler.hpp"
+#include "HEADHandler.hpp"
+#include "PATCHHandler.hpp"
+#include "OPTIONSHandler.hpp"
 
 #include "../liblogger/liblogger.hpp"
 
@@ -23,6 +27,14 @@ namespace HTTP_Server
 			return std::make_unique<PUTHandler>();
 		case POST:
 			return std::make_unique<POSTHandler>();
+		case DELETE:
+			return std::make_unique<DELETEHandler>();
+		case HEAD:
+			return std::make_unique<HEADHandler>();
+		case OPTIONS:
+			return std::make_unique<OPTIONSHandler>();
+		case PATCH:
+			return std::make_unique<PATCHHandler>();
 
 		default:
 			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Invalid option!");

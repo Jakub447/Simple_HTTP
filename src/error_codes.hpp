@@ -12,6 +12,7 @@ namespace HTTP_Server
 	{
 		HTTP_ERR_OK = 200,					// No error
 		HTTP_ERR_CREAT = 201,					// created
+		HTTP_ERR_NO_CONTENT = 204,					// no content
 		HTTP_ERR_NOT_MODIFIED = 304,					// NNOT MODIFIED
 		HTTP_ERR_INVALID_REQUEST = 400,		// Bad Request
 		HTTP_ERR_UNAUTHORIZED = 401,		// Unauthorized
@@ -45,6 +46,7 @@ namespace HTTP_Server
 	inline const std::unordered_map<HTTP_error_code, std::string> HTTP_ERROR_DESCRIPTIONS = {
 		{HTTP_ERR_OK, "Success"},
 		{HTTP_ERR_CREAT, "Created"},
+		{HTTP_ERR_NO_CONTENT, "no content"},
 		{HTTP_ERR_NOT_MODIFIED, "not modified"},
 		{HTTP_ERR_INVALID_REQUEST, "Bad Request: The server could not understand the request."},
 		{HTTP_ERR_UNAUTHORIZED, "Unauthorized: Access is denied due to invalid credentials."},

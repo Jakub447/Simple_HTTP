@@ -1,5 +1,5 @@
-#ifndef POST_HANDLER_HPP
-#define POST_HANDLER_HPP
+#ifndef HEAD_HANDLER_HPP
+#define HEAD_HANDLER_HPP
 
 #include "IMethodHandler.hpp"
 #include <fstream>
@@ -9,7 +9,7 @@
 namespace HTTP_Server
 {
 
-	class POSTHandler : public IMethodHandler
+	class HEADHandler : public IMethodHandler
 	{
 	public:
 		int handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache& response_cache, std::unique_ptr<CacheEntry> & cache_entry, bool& is_served_from_cache) override;
@@ -17,4 +17,4 @@ namespace HTTP_Server
 
 }
 
-#endif // POST_HANDLER_HPP
+#endif // HEAD_HANDLER_HPP

@@ -1,5 +1,5 @@
 
-#include "POSTHandler.hpp"
+#include "PATCHHandler.hpp"
 #include "MimeTypeRecognizer.hpp"
 #include "ResponseCache.hpp"
 #include <iostream>
@@ -19,24 +19,21 @@
 namespace HTTP_Server
 {
 
-	// Function to convert FileOpenMode to std::ios flags
-	static std::ios_base::openmode to_open_mode(bool is_binary)
+	static bool file_exists(const std::string &filename)
 	{
-		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
-		if (is_binary)
-		{
-			return std::ios::in | std::ios::binary;
-		}
-		else
-		{
-			return std::ios::in;
-		}
+		struct stat buffer;
+		return (stat(filename.c_str(), &buffer) == 0); // Returns true if the file exists
 	}
 
 	static int write_string_to_file(const std::string &content, const std::string &filename, bool is_binary)
 	{
-
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
+
+		if (!file_exists(filename))
+		{
+			lib_logger::LOG(lib_logger::LogLevel::ERROR, "file does not exist");
+			return APP_ERR_FAILURE; // Exit if file doesn't exist
+		}
 
 		// Determine the open mode based on is_binary
 		std::ios_base::openmode mode = is_binary ? (std::ios::binary | std::ios::app) : std::ios::app;
@@ -88,7 +85,7 @@ namespace HTTP_Server
 
 	}
 
-	int POSTHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
+	int PATCHHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
 	{
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		lib_logger::LOG(lib_logger::LogLevel::INFO, "serving POST method");
@@ -103,20 +100,13 @@ namespace HTTP_Server
 
 		MimeTypeRecognizer recognizer;
 		MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);
-		write_string_to_file(req_info.body, filename, file_mime_type_info.is_binary);
 
-		// MimeTypeRecognizer recognizer;
-		// MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);
-		// resp_headers.add_header("Content-Type", file_mime_type_info.mimeType);
-		// resp_info.resp_final_body = read_file_to_string(filename, file_mime_type_info.is_binary);
 
-		// if(resp_info.resp_final_body == "")
-		//{
-		//	resp_info.resp_code = HTTP_ERR_NOT_FOUND;
-		//	resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);
+		if(APP_ERR_OK != write_string_to_file(req_info.body, filename, file_mime_type_info.is_binary)){
+			resp_info.resp_code = HTTP_ERR_INTERNAL_SERVER;
+			resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);	
+		}
 
-		//	std::cout << "NOT FOUND " << std::endl;
-		//}
 
 		resp_headers.add_header("Content-Length", std::to_string(0));
 

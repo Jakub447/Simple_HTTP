@@ -12,20 +12,18 @@ namespace HTTP_Server
 		{
 		case GET:
 			return "GET";
-		// case POST:
-		//	return "POST";
 		case PUT:
 			return "PUT";
 		case POST:
 			return "POST";
-		// case DELETE:
-		//	return "DELETE";
-		// case PATCH:
-		//	return "PATCH";
-		// case HEAD:
-		//	return "HEAD";
-		// case OPTIONS:
-		//	return "OPTIONS";
+		case DELETE:
+			return "DELETE";
+		case PATCH:
+			return "PATCH";
+		case HEAD:
+			return "HEAD";
+		case OPTIONS:
+			return "OPTIONS";
 		default:
 			return "UNKNOWN";
 		}
