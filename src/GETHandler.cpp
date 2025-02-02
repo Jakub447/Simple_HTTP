@@ -35,42 +35,55 @@ namespace HTTP_Server
 
 	static std::string read_file_to_string(const std::string &filename, bool is_binary)
 	{
-		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		std::ifstream file(filename, to_open_mode(is_binary));
 		if (!file)
 		{
-			// throw std::runtime_error("Unable to open file");
-
-			// Log the error and return an empty string
-			lib_logger::LOG(lib_logger::LogLevel::ERROR,"Unable to open file: %s", filename);
-			return ""; // Return empty content if the file can't be read
+			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file: %s", filename);
+			return "";
 		}
-		return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+		const size_t buffer_size = 8192; // 8KB buffer
+		std::vector<char> buffer(buffer_size);
+		std::string content;
+
+		while (file.read(buffer.data(), buffer.size()))
+		{
+			content.append(buffer.data(), file.gcount());
+		}
+		if (file.gcount() > 0)
+		{
+			content.append(buffer.data(), file.gcount());
+		}
+
+		return content;
 	}
 
-	// Function to generate an ETag based on the content of a file
 	static std::string generate_ETag(const std::string &filename)
 	{
-		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
-		std::ifstream file(filename, std::ios::binary);
-		if (!file)
+		std::filesystem::path filePath(filename);
+
+		if (!std::filesystem::exists(filePath))
 			return "";
 
-		// Read file content into a string
-		std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+		// Get the last modified timestamp of the file
+		auto fileTime = std::filesystem::last_write_time(filePath);
 
-		// Compute SHA256 hash
+		// Convert the timestamp to a string or hash it directly
+		std::ostringstream oss;
+		oss << fileTime.time_since_epoch().count();
+
+		// Compute SHA256 hash of the timestamp
 		unsigned char hash[SHA256_DIGEST_LENGTH];
-		SHA256(reinterpret_cast<const unsigned char *>(content.data()), content.size(), hash);
+		SHA256(reinterpret_cast<const unsigned char *>(oss.str().data()), oss.str().size(), hash);
 
 		// Convert hash to hex string
-		std::ostringstream oss;
+		std::ostringstream etag;
 		for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
 		{
-			oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
+			etag << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(hash[i]);
 		}
 
-		return oss.str();
+		return etag.str();
 	}
 
 	static bool should_cache_response(const HTTPHeaders &headers)
