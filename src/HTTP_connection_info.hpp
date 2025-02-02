@@ -10,6 +10,11 @@ namespace HTTP_Server
 	{
 		GET,
 		PUT,
+		POST,
+		DELETE,
+		PATCH,
+		HEAD,
+		OPTIONS,
 		UNKNOWN_METHOD
 	};
 

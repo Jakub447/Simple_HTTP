@@ -1,5 +1,5 @@
 
-#include "GETHandler.hpp"
+#include "HEADHandler.hpp"
 #include "MimeTypeRecognizer.hpp"
 #include "ResponseCache.hpp"
 #include <iostream>
@@ -18,46 +18,6 @@
 
 namespace HTTP_Server
 {
-
-	// Function to convert FileOpenMode to std::ios flags
-	static std::ios_base::openmode to_open_mode(bool is_binary)
-	{
-		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
-		if (is_binary)
-		{
-			return std::ios::in | std::ios::binary;
-		}
-		else
-		{
-			return std::ios::in;
-		}
-	}
-
-	static std::string read_file_to_string(const std::string &filename, bool is_binary)
-	{
-		std::ifstream file(filename, to_open_mode(is_binary));
-		if (!file)
-		{
-			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file: %s", filename);
-			return "";
-		}
-
-		const size_t buffer_size = 8192; // 8KB buffer
-		std::vector<char> buffer(buffer_size);
-		std::string content;
-
-		while (file.read(buffer.data(), buffer.size()))
-		{
-			content.append(buffer.data(), file.gcount());
-		}
-		if (file.gcount() > 0)
-		{
-			content.append(buffer.data(), file.gcount());
-		}
-
-		file.close();
-		return content;
-	}
 
 	static std::string generate_ETag(const std::string &filename)
 	{
@@ -104,7 +64,7 @@ namespace HTTP_Server
 		return true;
 	}
 
-	int GETHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
+	int HEADHandler::handle_method(const std::string &root_dir, const HTTP_request_info &req_info, const HTTPHeaders &req_headers, HTTPHeaders &resp_headers, HTTP_request_response &resp_info, ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, bool &is_served_from_cache)
 	{
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		lib_logger::LOG(lib_logger::LogLevel::INFO,"serving GET method");
@@ -141,9 +101,9 @@ namespace HTTP_Server
 		MimeTypeRecognizer recognizer;
 		MimeTypeInfo file_mime_type_info = recognizer.get_mime_type_Info(filename);
 		resp_headers.add_header("Content-Type", file_mime_type_info.mimeType);
-		resp_info.resp_final_body = read_file_to_string(filename, file_mime_type_info.is_binary);
 
-		if(resp_info.resp_final_body == "")
+
+		if(!std::filesystem::exists(filename))
 		{
 			resp_info.resp_code = HTTP_ERR_NOT_FOUND;
 			resp_info.status_message = get_srv_error_description((HTTP_error_code)resp_info.resp_code);

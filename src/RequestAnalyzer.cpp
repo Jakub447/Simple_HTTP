@@ -60,12 +60,18 @@ namespace HTTP_Server
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		if (method == "GET")
 			return HTTPMethod::GET;
-		// if (method == "POST")
-		// return HTTPMethod::POST;
 		if (method == "PUT")
 			return HTTPMethod::PUT;
-		// if (method == "DELETE")
-		// return HTTPMethod::DELETE;
+		if (method == "POST")
+			return HTTPMethod::POST;
+		if (method == "DELETE")
+			return HTTPMethod::DELETE;
+		if (method == "HEAD")
+			return HTTPMethod::HEAD;
+		if (method == "OPTIONS")
+			return HTTPMethod::OPTIONS;
+		if (method == "PATCH")
+			return HTTPMethod::PATCH;
 		return HTTPMethod::UNKNOWN_METHOD;
 	}
 
