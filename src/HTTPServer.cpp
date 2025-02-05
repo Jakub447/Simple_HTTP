@@ -72,6 +72,27 @@ namespace HTTP_Server
 		}
 	}
 
+	static bool rate_limit_exceeded(std::string client_ip, int client_fd)
+	{
+        // Rate limiting logic
+        auto now = std::chrono::steady_clock::now();
+        auto &rate_info = rate_limits[client_ip];
+
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - rate_info.last_request_time).count() >= WINDOW_DURATION_S) {
+            rate_info.request_count = 0;  // Reset count every second
+            rate_info.last_request_time = now;
+        }
+
+        rate_info.request_count++;
+
+        if (rate_info.request_count > MAX_REQUESTS_PER_SECOND) {
+            lib_logger::LOG(lib_logger::LogLevel::WARNING, "Rate limit exceeded for " + client_ip);
+            close(client_fd);
+            return false;
+        }
+		return true;
+	}
+
 	int HTTPServer::server_init()
 	{
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
@@ -190,6 +211,14 @@ namespace HTTP_Server
 		int client_fd = accept(server_socket, (struct sockaddr *)&client_addr, &client_len);
 		if (client_fd >= 0)
 		{
+
+
+		std::string client_ip = inet_ntoa(client_addr.sin_addr);
+
+		if(rate_limit_exceeded(client_ip, client_fd))
+		{
+			return;
+		}
 
 			SSL *ssl = SSL_new(ctx);
 			SSL_set_fd(ssl, client_fd);
