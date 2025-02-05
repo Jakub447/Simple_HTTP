@@ -9,6 +9,9 @@
 #include <memory>
 #include <vector>
 
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #include "HTTPServer.hpp"
 #include "RequestAnalyzer.hpp"
 #include "ResponseBuilder.hpp"
@@ -19,8 +22,10 @@ namespace HTTP_Server
 {
 
 	// Constructor to initialize port and buffer_size with default values
-	HTTPServer::HTTPServer(int port, int buffer_size, std::string root_directory)
-		: port(port), buffer_size(buffer_size), server_socket(-1), root_directory(root_directory) {}
+	HTTPServer::HTTPServer(int port, int buffer_size, std::string root_directory,  SSL_CTX* ctx)
+		: port(port), buffer_size(buffer_size), server_socket(-1), root_directory(root_directory), ctx(nullptr) {}
+
+	
 
 	// Helper function to set a socket as non-blocking
 	static void set_non_blocking(int socket)
@@ -28,6 +33,64 @@ namespace HTTP_Server
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		int flags = fcntl(socket, F_GETFL, 0);
 		fcntl(socket, F_SETFL, flags | O_NONBLOCK);
+	}
+
+	static void init_openssl()
+	{
+		SSL_load_error_strings();
+		OpenSSL_add_ssl_algorithms();
+	}
+
+	static void cleanup_openssl()
+	{
+		EVP_cleanup();
+	}
+
+	static SSL_CTX *create_context()
+	{
+		const SSL_METHOD *method;
+		SSL_CTX *ctx;
+
+		method = TLS_server_method();
+		ctx = SSL_CTX_new(method);
+		if (!ctx)
+		{
+			perror("Unable to create SSL context");
+			ERR_print_errors_fp(stderr);
+			exit(EXIT_FAILURE);
+		}
+		return ctx;
+	}
+
+	void HTTPServer::configure_context()
+	{
+		if (SSL_CTX_use_certificate_file(ctx, "server.crt", SSL_FILETYPE_PEM) <= 0 ||
+			SSL_CTX_use_PrivateKey_file(ctx, "server.key", SSL_FILETYPE_PEM) <= 0)
+		{
+			ERR_print_errors_fp(stderr);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	static bool rate_limit_exceeded(std::string client_ip, int client_fd)
+	{
+        // Rate limiting logic
+        auto now = std::chrono::steady_clock::now();
+        auto &rate_info = rate_limits[client_ip];
+
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - rate_info.last_request_time).count() >= WINDOW_DURATION_S) {
+            rate_info.request_count = 0;  // Reset count every second
+            rate_info.last_request_time = now;
+        }
+
+        rate_info.request_count++;
+
+        if (rate_info.request_count > MAX_REQUESTS_PER_SECOND) {
+            lib_logger::LOG(lib_logger::LogLevel::WARNING, "Rate limit exceeded for " + client_ip);
+            close(client_fd);
+            return false;
+        }
+		return true;
 	}
 
 	int HTTPServer::server_init()
@@ -47,6 +110,11 @@ namespace HTTP_Server
 		lib_logger::LOG(lib_logger::LogLevel::WARNING,"this is a test");
 		lib_logger::LOG(lib_logger::LogLevel::ERROR,"this is a test");
 		lib_logger::LOG(lib_logger::LogLevel::CRITICAL,"this is a test");
+
+		init_openssl();
+
+		ctx = create_context();
+		configure_context();
 
 		// Create a socket
 		server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -143,10 +211,33 @@ namespace HTTP_Server
 		int client_fd = accept(server_socket, (struct sockaddr *)&client_addr, &client_len);
 		if (client_fd >= 0)
 		{
+
+
+		std::string client_ip = inet_ntoa(client_addr.sin_addr);
+
+		if(rate_limit_exceeded(client_ip, client_fd))
+		{
+			return;
+		}
+
+			SSL *ssl = SSL_new(ctx);
+			SSL_set_fd(ssl, client_fd);
+
+			if (SSL_accept(ssl) <= 0)
+			{
+				ERR_print_errors_fp(stderr);
+				return;
+			}
+			else
+			{
+				//const char reply[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello, HTTPS!";
+				//SSL_write(ssl, reply, strlen(reply));
+			}
+
 			fcntl(client_fd, F_SETFL, O_NONBLOCK); // Non-blocking client socket
 
 			poll_fds.push_back({client_fd, POLLIN, 0});
-			clients[client_fd] = {client_fd, std::chrono::steady_clock::now(), true};
+			clients[client_fd] = {client_fd, std::chrono::steady_clock::now(), true, ssl};
 
 			lib_logger::LOG(lib_logger::LogLevel::DEBUG,"Accepted new connection: %d", client_fd);
 		}
@@ -156,7 +247,9 @@ namespace HTTP_Server
 	{
 		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
 		char buffer[1024];
-		int bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+		SSL* ssl = clients[client_fd].ssl;
+		//int bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+		int bytes_read = SSL_read(ssl, buffer, sizeof(buffer) - 1);
 
 		if (bytes_read <= 0)
 		{
@@ -201,7 +294,8 @@ namespace HTTP_Server
 			return;
 		}
 
-		if (send(client_fd, resp_builder.get_headers().c_str(), resp_builder.get_headers().size(), MSG_NOSIGNAL) == -1)
+		//if (send(client_fd, resp_builder.get_headers().c_str(), resp_builder.get_headers().size(), MSG_NOSIGNAL) == -1)
+		if (SSL_write(ssl, resp_builder.get_headers().c_str(), resp_builder.get_headers().size()) == -1)
 		{
 			if (errno == EPIPE || errno == ECONNRESET)
 			{
@@ -217,7 +311,8 @@ namespace HTTP_Server
 			ssize_t totalSent = 0;
 			while (totalSent < resp_builder.get_body().size())
 			{
-				ssize_t bytesSent = send(client_fd, resp_builder.get_body().c_str() + totalSent, resp_builder.get_body().size() - totalSent, MSG_NOSIGNAL);
+				//ssize_t bytesSent = send(client_fd, resp_builder.get_body().c_str() + totalSent, resp_builder.get_body().size() - totalSent, MSG_NOSIGNAL);
+				int  bytesSent = SSL_write(ssl, resp_builder.get_body().c_str() + totalSent, resp_builder.get_body().size() - totalSent);
 				if (bytesSent == -1)
 				{
 					if (errno == EPIPE || errno == ECONNRESET)
@@ -291,11 +386,13 @@ namespace HTTP_Server
 
 	HTTPServer::~HTTPServer()
 	{
-		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
-		close(server_socket);
-		for (const auto &client : clients)
-		{
+		for (const auto& client : clients) {
+			SSL_shutdown(client.second.ssl);
+			SSL_free(client.second.ssl);
 			close(client.second.fd);
 		}
+		close(server_socket);
+		SSL_CTX_free(ctx);
+		cleanup_openssl();
 	}
 }

@@ -61,7 +61,7 @@ namespace HTTP_Server
 		if (!file)
 		{
 			// Log the error
-			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file for writing: %s", filename);
+			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file for writing: %s", filename.c_str());
 			return APP_ERR_NO_FILE_OPEN;
 
 		}

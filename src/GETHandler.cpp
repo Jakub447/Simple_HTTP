@@ -38,7 +38,7 @@ namespace HTTP_Server
 		std::ifstream file(filename, to_open_mode(is_binary));
 		if (!file)
 		{
-			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file: %s", filename);
+			lib_logger::LOG(lib_logger::LogLevel::ERROR, "Unable to open file: %s", filename.c_str());
 			return "";
 		}
 
