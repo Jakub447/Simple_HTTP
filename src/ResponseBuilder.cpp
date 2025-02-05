@@ -166,9 +166,21 @@ namespace HTTP_Server
 		"Content-Type", "Content-Length", "Cache-Control", "Expires",
 		"Date", "Last-Modified", "ETag", "Content-Encoding", "Vary"};*/
 
-	int ResponseBuilder::prepare_headers(ResponseCache &response_cache, std::unique_ptr<CacheEntry>& cache_entry,const bool& is_served_from_cache)
+	static bool is_valid_header_name(const std::string &name)
 	{
-		lib_logger::LOG(lib_logger::LogLevel::TRACE,"");
+		// Allow only alphanumerics and hyphens (standard HTTP header format)
+		return !name.empty() && name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-") == std::string::npos;
+	}
+
+	static bool is_valid_header_value(const std::string &value)
+	{
+		// Disallow CR and LF characters to prevent header injection
+		return value.find('\r') == std::string::npos && value.find('\n') == std::string::npos;
+	}
+
+	int ResponseBuilder::prepare_headers(ResponseCache &response_cache, std::unique_ptr<CacheEntry> &cache_entry, const bool &is_served_from_cache)
+	{
+		lib_logger::LOG(lib_logger::LogLevel::TRACE, "");
 		prepare_status_line();
 
 		if (is_served_from_cache)
@@ -176,14 +188,16 @@ namespace HTTP_Server
 			// Use headers from the cache entry
 			for (const auto &header : cache_entry->selected_headers.get_all_header_pairs())
 			{
-				resp_headers.add_header(header.first, header.second);
+				if (is_valid_header_name(header.first) && is_valid_header_value(header.second))
+				{
+					resp_headers.add_header(header.first, header.second);
+				}
+				else
+				{
+					lib_logger::LOG(lib_logger::LogLevel::WARNING, "Skipping invalid cached header: " + header.first);
+				}
 			}
 
-			// Generate any dynamic headers that need to be fresh
-			//resp_headers.add_header("Date", get_http_date());
-			//resp_headers.add_header("Connection", "keep-alive");
-
-			// If serving from cache, add `Age` header
 			auto age = std::chrono::duration_cast<std::chrono::seconds>(
 						   std::chrono::steady_clock::now() - cache_entry->timestamp)
 						   .count();
@@ -191,15 +205,20 @@ namespace HTTP_Server
 		}
 		else
 		{
-			//resp_headers.add_header("Server", "Own_http_server/0.1");
-			//resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
-			//resp_headers.add_header("Date", get_http_date());
-			//resp_headers.add_header("Connection", "keep-alive");
+			// resp_headers.add_header("Server", "Own_http_server/0.1");
+			// resp_headers.add_header("Content-Length", std::to_string(resp_info.resp_final_body.length()));
+			// resp_headers.add_header("Date", get_http_date());
+			// resp_headers.add_header("Connection", "keep-alive");
 		}
 
 		resp_headers.add_header("Server", "Own_http_server/0.1");
 		resp_headers.add_header("Date", get_http_date());
 		resp_headers.add_header("Connection", "keep-alive");
+
+		// Security headers to mitigate attacks
+		resp_headers.add_header("X-Content-Type-Options", "nosniff");
+		resp_headers.add_header("X-Frame-Options", "DENY");
+		resp_headers.add_header("Content-Security-Policy", "default-src 'self'");
 
 		resp_info.resp_final_header += resp_headers.Get_all_headers();
 
