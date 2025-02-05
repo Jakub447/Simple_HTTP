@@ -6,6 +6,9 @@
 #include <string>
 #include <map>
 #include <poll.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #include "ResponseCache.hpp"
 #include "../liblogger/liblogger.hpp"
 
@@ -20,13 +23,14 @@ namespace HTTP_Server
 		int fd;											   // Client socket file descriptor
 		std::chrono::steady_clock::time_point last_active; // Last active time
 		bool keep_alive;								   // Track if connection is persistent
+		SSL* ssl;
 	};
 
 	class HTTPServer
 	{
 	public:
 		// Constructor to initialize port and buffer_size with default values
-		HTTPServer(int port = 8080, int buffer_size = 1024, std::string root_directory = "../www");
+		HTTPServer(int port = 8080, int buffer_size = 1024, std::string root_directory = "../www", SSL_CTX* ctx = nullptr);
 		~HTTPServer();              // Destructor (add this line)
 
 		void run();
@@ -47,6 +51,7 @@ namespace HTTP_Server
 		int server_socket; // Server socket descriptor
 		// int client_socket; // Client socket descriptor
 		std::string root_directory;
+		SSL_CTX* ctx;
 		struct sockaddr_in server_addr;
 		struct sockaddr_in client_addr;
 		socklen_t addr_len = sizeof(client_addr);
@@ -58,6 +63,7 @@ namespace HTTP_Server
 		void handle_client_request(int client_fd, ResponseCache &response_cache); // Process client requests
 		void check_for_timeouts();				   // Close inactive connections
 		void remove_client(int client_fd);		   // Helper to clean up closed connections
+		void configure_context();
 	};
 
 }
